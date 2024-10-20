@@ -1,6 +1,6 @@
-import express from "express"
+import express from "express";
 import bodyParser from "body-parser"
-import connectDB from "./config/db"
+import connectDB from "./config/db";
 
 import * as routes from "./routes/index"
 

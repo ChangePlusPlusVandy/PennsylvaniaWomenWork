@@ -15,6 +15,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@sendgrid/mail": "^8.1.4",
     "axios": "^1.7.7",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
@@ -28,7 +29,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
-    "@types/node": "^22.5.4",
+    "@types/node": "^22.8.1",
     "@types/uuid": "^10.0.0",
     "body-parser": "^1.20.3",
     "prettier": "^3.3.3",
