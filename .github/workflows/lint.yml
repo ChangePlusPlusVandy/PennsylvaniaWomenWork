@@ -17,6 +17,8 @@ jobs:
 
     - name: Install dependencies
       run: npm install
+      working-directory: ./api  # Update this path to the correct directory containing your package.json
 
     - name: Run Prettier
       run: npm run format
+      working-directory: ./api  # Update this path to the correct directory containing your package.json
