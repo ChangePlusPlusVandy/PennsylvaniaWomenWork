@@ -9,6 +9,8 @@
     "start:prod": "npm run build && node dist/index.js",
     "start:dev": "node server.js",
     "db:connect": "node server.js",
+    "prettier": "prettier --single-quote --write 'src/**/*.{js,ts}'",
+    "format": "prettier --check",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -29,6 +31,7 @@
     "@types/express": "^4.17.21",
     "@types/node": "^22.5.4",
     "@types/uuid": "^10.0.0",
+    "prettier": "^3.3.3",
     "typescript": "^5.6.2"
   }
 }
