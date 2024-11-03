@@ -1,16 +1,19 @@
 import express from "express";
-import bodyParser from "body-parser"
+import bodyParser from "body-parser";
 import connectDB from "./config/db";
+import dotenv from "dotenv";
 
-import * as routes from "./routes/index"
+dotenv.config();
 
-var cors = require("cors")
+import * as routes from "./routes/index";
 
-const app = express()
-app.use(cors())
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
+var cors = require("cors");
 
-app.use("/user", routes.user)
+const app = express();
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
-app.listen(process.env.PORT || 8000, () => console.log("Server running..."))
+app.use("/user", routes.user);
+
+app.listen(process.env.PORT || 8000, () => console.log("Server running..."));
