@@ -1,5 +1,5 @@
-import React, { useState } from "react"
-import Navbar from "../components/Navbar"
+import React, { useState } from "react";
+import Navbar from "../components/Navbar";
 
 const MentorDashboard = () => {
   return (
@@ -10,7 +10,7 @@ const MentorDashboard = () => {
         <div className="Button Button-color--dark-1000">Example Button</div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default MentorDashboard
+export default MentorDashboard;

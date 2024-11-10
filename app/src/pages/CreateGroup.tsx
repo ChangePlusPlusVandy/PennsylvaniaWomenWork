@@ -1,28 +1,28 @@
-import React, { type ReactElement, useState } from "react"
-import Navbar from "../components/Navbar"
-import AsyncSubmit from "../components/AsyncSubmit"
-import { api } from "../api"
-import { useNavigate } from "react-router-dom"
-import * as yup from "yup"
-import { Formik, Form, Field } from "formik"
+import React, { type ReactElement, useState } from "react";
+import Navbar from "../components/Navbar";
+import AsyncSubmit from "../components/AsyncSubmit";
+import { api } from "../api";
+import { useNavigate } from "react-router-dom";
+import * as yup from "yup";
+import { Formik, Form, Field } from "formik";
 
 interface GroupFormValues {
-  groupName: string
-  groupDescription: string
-  groupMemberEmail: string
+  groupName: string;
+  groupDescription: string;
+  groupMemberEmail: string;
 }
 
 const initialValues: GroupFormValues = {
   groupName: "",
   groupDescription: "",
   groupMemberEmail: "",
-}
+};
 
 const CreateGroup = (): ReactElement => {
-  const [isLoading, setIsLoading] = useState<boolean>(false)
-  const [success, setSuccess] = useState<boolean>(false)
-  const [members, setMembers] = useState<string[]>([])
-  const navigate = useNavigate()
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [success, setSuccess] = useState<boolean>(false);
+  const [members, setMembers] = useState<string[]>([]);
+  const navigate = useNavigate();
 
   const validationSchema = yup.object().shape({
     groupName: yup.string().required("Please enter a group name"),
@@ -35,47 +35,47 @@ const CreateGroup = (): ReactElement => {
         "Please enter an email or add a group member",
         function (value) {
           // Validate only if there's no value and no members added
-          return value !== "" || members.length > 0
-        }
+          return value !== "" || members.length > 0;
+        },
       ),
-  })
+  });
 
   const handleSubmit = async (values: GroupFormValues, { resetForm }: any) => {
-    setIsLoading(true)
+    setIsLoading(true);
 
     // Construct the group data to send to the backend
     const groupData = {
       groupName: values.groupName,
       groupDescription: values.groupDescription,
       members: members, // Use the members state array
-    }
+    };
 
-    console.log("Sending group data:", groupData) // Optional: Log the data being sent
+    console.log("Sending group data:", groupData); // Optional: Log the data being sent
 
     try {
       // Send POST request to the /create-group endpoint
-      const response = await api.post("/create-group/:", groupData)
+      const response = await api.post("/create-group/:", groupData);
 
-      console.log("Group created successfully:", response.data)
-      setSuccess(true) // Set success state to true
-      resetForm() // Reset the form after successful submission
-      setMembers([]) // Clear the members array as well
+      console.log("Group created successfully:", response.data);
+      setSuccess(true); // Set success state to true
+      resetForm(); // Reset the form after successful submission
+      setMembers([]); // Clear the members array as well
     } catch (error) {
       console.error(
         "Error creating group:",
-        (error as any).response?.data || (error as any).message
-      )
+        (error as any).response?.data || (error as any).message,
+      );
     } finally {
-      setIsLoading(false) // Reset loading state
+      setIsLoading(false); // Reset loading state
     }
-  }
+  };
 
   const addMember = (email: string, resetField: () => void) => {
     if (email && !members.includes(email)) {
-      setMembers([...members, email])
-      resetField() // Clear the email input field
+      setMembers([...members, email]);
+      resetField(); // Clear the email input field
     }
-  }
+  };
 
   return (
     <>
@@ -148,8 +148,8 @@ const CreateGroup = (): ReactElement => {
                         className="Button Button-color--purple-1000 Margin-left--10"
                         onClick={() => {
                           addMember(values.groupMemberEmail, () =>
-                            setFieldValue("groupMemberEmail", "")
-                          )
+                            setFieldValue("groupMemberEmail", ""),
+                          );
                         }}
                       >
                         Add
@@ -195,7 +195,7 @@ const CreateGroup = (): ReactElement => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default CreateGroup
+export default CreateGroup;

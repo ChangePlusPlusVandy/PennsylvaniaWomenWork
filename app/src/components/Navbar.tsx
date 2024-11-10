@@ -1,15 +1,15 @@
-import react, { type ReactElement } from "react"
-import { useNavigate } from "react-router-dom"
+import react, { type ReactElement } from "react";
+import { useNavigate } from "react-router-dom";
 
 const Navbar = (): ReactElement => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   return (
     <>
       <div className="Navbar">
         <div className="Navbar-body">
           <div
             onClick={() => {
-              navigate("/home")
+              navigate("/home");
             }}
             className="Navbar-body-logo"
           ></div>
@@ -17,7 +17,7 @@ const Navbar = (): ReactElement => {
             <div
               className="Navbar-body-link Margin-right--20"
               onClick={() => {
-                navigate("/home")
+                navigate("/home");
               }}
             >
               Home
@@ -25,7 +25,7 @@ const Navbar = (): ReactElement => {
             <div
               className="Navbar-body-link"
               onClick={() => {
-                navigate("/mentor")
+                navigate("/mentor");
               }}
             >
               Mentor
@@ -33,7 +33,7 @@ const Navbar = (): ReactElement => {
             <div
               className="Navbar-body-link Margin-left--20"
               onClick={() => {
-                navigate("/create-workshop")
+                navigate("/create-workshop");
               }}
             >
               Create Workshop
@@ -41,7 +41,7 @@ const Navbar = (): ReactElement => {
             <div
               className="Navbar-body-link Margin-left--20"
               onClick={() => {
-                navigate("/create-meeting")
+                navigate("/create-meeting");
               }}
             >
               Create Meeting
@@ -50,7 +50,7 @@ const Navbar = (): ReactElement => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

@@ -1,6 +1,6 @@
 export const api: any = {
   get: async (route: string): Promise<any> => {
-    const url = `${process.env.REACT_APP_API_URL as string}${route}`
+    const url = `${process.env.REACT_APP_API_URL as string}${route}`;
 
     return await fetch(url, {
       method: "GET",
@@ -8,24 +8,24 @@ export const api: any = {
     })
       .then(async (res) => {
         if (!res.ok) {
-          throw new Error("Network response was not ok")
+          throw new Error("Network response was not ok");
         }
-        const json = await res.json()
+        const json = await res.json();
         const response = {
           data: json,
           status: res.status,
-        }
+        };
 
-        return response
+        return response;
       })
       .catch((err) => {
-        console.error("Error fetching data: ", err)
-        throw err
-      })
+        console.error("Error fetching data: ", err);
+        throw err;
+      });
   },
 
   post: async (route: string, payload: any): Promise<any> => {
-    const url = `${process.env.REACT_APP_API_URL as string}${route}`
+    const url = `${process.env.REACT_APP_API_URL as string}${route}`;
 
     return await fetch(url, {
       method: "POST",
@@ -36,22 +36,22 @@ export const api: any = {
     })
       .then(async (res) => {
         if (!res.ok) {
-          throw new Error("Network response was not ok")
+          throw new Error("Network response was not ok");
         }
-        const json = await res.json()
+        const json = await res.json();
         return {
           data: json,
           status: res.status,
-        }
+        };
       })
       .catch((err) => {
-        console.error("Error posting data: ", err)
-        throw err
-      })
+        console.error("Error posting data: ", err);
+        throw err;
+      });
   },
 
   put: async (route: string, data: any): Promise<any> => {
-    const url = `${process.env.REACT_APP_API_URL as string}${route}`
+    const url = `${process.env.REACT_APP_API_URL as string}${route}`;
 
     return await fetch(url, {
       method: "PUT",
@@ -63,21 +63,21 @@ export const api: any = {
       body: data,
     })
       .then(async (res) => {
-        const json = await res.json()
+        const json = await res.json();
         const response = {
           data: json,
           status: res.status,
-        }
-        return response
+        };
+        return response;
       })
       .catch((err) => {
-        console.error("Error posting data: ", err)
-        throw err
-      })
+        console.error("Error posting data: ", err);
+        throw err;
+      });
   },
 
   delete: async (route: string, data: any): Promise<any> => {
-    const url = `${process.env.REACT_APP_API_URL as string}${route}`
+    const url = `${process.env.REACT_APP_API_URL as string}${route}`;
 
     return await fetch(url, {
       method: "DELETE",
@@ -89,19 +89,19 @@ export const api: any = {
     })
       .then(async (res) => {
         if (!res.ok) {
-          throw new Error("Network response was not ok")
+          throw new Error("Network response was not ok");
         }
-        const json = await res.json()
+        const json = await res.json();
         const response = {
           data: json,
           status: res.status,
-        }
+        };
 
-        return response
+        return response;
       })
       .catch((err) => {
-        console.error("Error deleting data: ", err)
-        throw err
-      })
+        console.error("Error deleting data: ", err);
+        throw err;
+      });
   },
-}
+};

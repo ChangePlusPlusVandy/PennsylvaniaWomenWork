@@ -1,53 +1,53 @@
 // Imports for all of the external libraries
-@import url('https://fonts.googleapis.com/css?family=Rubik');
-@import url('https://pro.fontawesome.com/releases/v5.10.0/css/all.css');
+@import url("https://fonts.googleapis.com/css?family=Rubik");
+@import url("https://pro.fontawesome.com/releases/v5.10.0/css/all.css");
 
-@import '~bootstrap/scss/bootstrap-utilities.scss';
-@import '~bootstrap/scss/bootstrap-grid.scss';
+@import "~bootstrap/scss/bootstrap-utilities.scss";
+@import "~bootstrap/scss/bootstrap-grid.scss";
 
 // Include modular style files
-@import 'animate.css';
-@import 'components';
-@import 'variables';
-@import 'utilities';
-@import 'widget';
-@import 'formik';
+@import "animate.css";
+@import "components";
+@import "variables";
+@import "utilities";
+@import "widget";
+@import "formik";
 
 :root {
   // define colors
-    @include root-palette($palette);
-  
-    --text-on-dark: var(--pww-color-light-1000);
-    --text-on-light: var(--pww-color-dark-1000);
-  
-    --transition-duration: 0.15s;
-  
-    --border-radius: 4rem;
-    --box-shadow: 0 0 3rem rgba(var(--dark), .1);
-    --line-height: 1.5em;
-  
-    --container-padding: 2rem;
-  }
-  
-  // Fonts
-  html,
-  body {
-    font-family: 'Quattrocento';
-    margin: 0;
-  }
-  
-  // default settings for the body
-  body {
-    font-size: var(--pww-font-size-4);
-    background-color: var(--pww-color-blue-100);
-    color: var(--pww-color-dark-1000);
-  }
-  
-  // Background Colors
-  .app {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    color: var(--pww-color-dark-1000);
-    font-weight: 100;
-  }
+  @include root-palette($palette);
+
+  --text-on-dark: var(--pww-color-light-1000);
+  --text-on-light: var(--pww-color-dark-1000);
+
+  --transition-duration: 0.15s;
+
+  --border-radius: 4rem;
+  --box-shadow: 0 0 3rem rgba(var(--dark), 0.1);
+  --line-height: 1.5em;
+
+  --container-padding: 2rem;
+}
+
+// Fonts
+html,
+body {
+  font-family: "Quattrocento";
+  margin: 0;
+}
+
+// default settings for the body
+body {
+  font-size: var(--pww-font-size-4);
+  background-color: var(--pww-color-blue-100);
+  color: var(--pww-color-dark-1000);
+}
+
+// Background Colors
+.app {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: var(--pww-color-dark-1000);
+  font-weight: 100;
+}

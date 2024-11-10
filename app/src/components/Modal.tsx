@@ -2,15 +2,15 @@
   This component is a modal that can be used to display information to the user.
 */
 
-import React, { type ReactElement } from "react"
-import Icon from "./Icon"
+import React, { type ReactElement } from "react";
+import Icon from "./Icon";
 
 interface ModalProps {
-  header?: string
-  subheader?: string
-  body?: ReactElement
-  large?: boolean
-  action?: () => void
+  header?: string;
+  subheader?: string;
+  body?: ReactElement;
+  large?: boolean;
+  action?: () => void;
 }
 
 const Modal = (props: ModalProps): ReactElement => {
@@ -19,7 +19,7 @@ const Modal = (props: ModalProps): ReactElement => {
       <div className="Modal-overlay" onClick={props.action}></div>
       <div
         className={`Modal animate__animated animate__slideInDown ${
-          props.large ?? false ? "Modal-large" : ""
+          (props.large ?? false) ? "Modal-large" : ""
         }`}
       >
         <div onClick={props.action} className="Modal-close">
@@ -36,7 +36,7 @@ const Modal = (props: ModalProps): ReactElement => {
         <div className="Modal-content"> {props.body} </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Modal
+export default Modal;

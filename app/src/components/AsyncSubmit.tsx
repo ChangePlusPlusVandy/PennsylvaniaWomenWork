@@ -1,5 +1,5 @@
-import React, { type ReactElement } from "react"
-import { Spinner } from "react-bootstrap"
+import React, { type ReactElement } from "react";
+import { Spinner } from "react-bootstrap";
 
 const AsyncSubmit = (props: { loading: boolean }): ReactElement => {
   return (
@@ -10,7 +10,7 @@ const AsyncSubmit = (props: { loading: boolean }): ReactElement => {
         </div>
       )}
     </>
-  )
-}
+  );
+};
 
-export default AsyncSubmit
+export default AsyncSubmit;

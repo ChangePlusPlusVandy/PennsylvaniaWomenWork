@@ -1,60 +1,60 @@
 .Form {
-    color: var(--pww-color-dark-900);
+  color: var(--pww-color-dark-900);
 
-    &-container {
-        width: 100%;
-        max-width: 600px; // Adjust max-width based on your layout
-        padding: 20px;
-        margin: 0 auto; // Center the form container
+  &-container {
+    width: 100%;
+    max-width: 600px; // Adjust max-width based on your layout
+    padding: 20px;
+    margin: 0 auto; // Center the form container
+  }
+
+  &-group {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+
+    label {
+      margin-bottom: 4px;
+      font-size: var(--pww-font-size-14);
+      color: var(--pww-color-dark-1000);
+      font-weight: var(--pww-font-weight-bold);
     }
 
-    &-group {
-        display: flex;
-        flex-direction: column;
-        margin-bottom: 10px;
-
-        label {
-            margin-bottom: 4px;
-            font-size: var(--pww-font-size-14);
-            color: var(--pww-color-dark-1000);
-            font-weight: var(--pww-font-weight-bold);
-        }
-
-        input,
-        select {
-            border-radius: var(--pww-border-radius-8);
-            border: none;
-            background-color: var(--pww-color-dark-50);
-            color: var(--pww-color-dark-700);
-            font-family: 'Exo 2', sans-serif;
-            font-size: var(--pww-font-size-14);
-            padding: 8px;
-            // width: 100%; // Ensure inputs fit within the container
-            box-sizing: border-box; // Include padding and border in width calculation
-            position: relative;
-        }
-
-        &-toggle {
-            cursor: pointer;  
-            margin: -30px 10px 0 auto;
-            z-index: var(--pww-z-100);
-            color: var(--pww-color-dark-700);
-
-            &:hover {
-                color: var(--pww-color-dark-900);
-            }
-        }
+    input,
+    select {
+      border-radius: var(--pww-border-radius-8);
+      border: none;
+      background-color: var(--pww-color-dark-50);
+      color: var(--pww-color-dark-700);
+      font-family: "Exo 2", sans-serif;
+      font-size: var(--pww-font-size-14);
+      padding: 8px;
+      // width: 100%; // Ensure inputs fit within the container
+      box-sizing: border-box; // Include padding and border in width calculation
+      position: relative;
     }
 
-    &-error {
-        margin-top: 10px;
-        color: var(--pww-color-red-1000);
-        font-size: var(--pww-font-size-12);
-    }
+    &-toggle {
+      cursor: pointer;
+      margin: -30px 10px 0 auto;
+      z-index: var(--pww-z-100);
+      color: var(--pww-color-dark-700);
 
-    &-success {
-        margin-top: 10px;
-        color: var(--pww-color-green-1000);
-        font-size: var(--pww-font-size-12);
+      &:hover {
+        color: var(--pww-color-dark-900);
+      }
     }
+  }
+
+  &-error {
+    margin-top: 10px;
+    color: var(--pww-color-red-1000);
+    font-size: var(--pww-font-size-12);
+  }
+
+  &-success {
+    margin-top: 10px;
+    color: var(--pww-color-green-1000);
+    font-size: var(--pww-font-size-12);
+  }
 }

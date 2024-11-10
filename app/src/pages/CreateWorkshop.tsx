@@ -1,25 +1,25 @@
-import React from "react"
-import { Formik, Form, Field } from "formik"
-import * as Yup from "yup"
-import Navbar from "../components/Navbar"
+import React from "react";
+import { Formik, Form, Field } from "formik";
+import * as Yup from "yup";
+import Navbar from "../components/Navbar";
 
 const CreateWorkshop = () => {
   // Initial form values
   const initialValues = {
     name: "",
     description: "",
-  }
+  };
 
   // Validation schema using Yup
   const validationSchema = Yup.object().shape({
     name: Yup.string().required("Name is required"),
     description: Yup.string().required("Description is required"),
-  })
+  });
 
   // Handle form submission
   const handleSubmit = (values: any) => {
-    console.log(values)
-  }
+    console.log(values);
+  };
 
   return (
     <>
@@ -71,7 +71,7 @@ const CreateWorkshop = () => {
         )}
       </Formik>
     </>
-  )
-}
+  );
+};
 
-export default CreateWorkshop
+export default CreateWorkshop;
