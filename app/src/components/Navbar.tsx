@@ -4,6 +4,8 @@ import { LoginButton } from "./mock-login-button";
 import { SignupButton } from "./mock-sign-up";
 import { LogoutButton } from "./mock-logout-button";
 import { useAuth0 } from "@auth0/auth0-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+
 
 const Navbar = (): ReactElement => {
   const navigate = useNavigate();
@@ -12,20 +14,17 @@ const Navbar = (): ReactElement => {
   return (
     <>
       <div className="Navbar">
+      <div className="Block-navbar Width--100">
+      <div className="Flex-row">
         <div className="Navbar-body">
-          <div
-            onClick={() => {
-              navigate("/home");
-            }}
-            className="Navbar-body-logo"
-          ></div>
           <div className="Flex-row Margin-left--auto">
             <div
+            className = "Home-icon Margin-right--40"
               onClick={() => {
                 navigate("/home");
-              }}
-              className="Navbar-body-home"
-            ></div>
+              }}>
+                <FontAwesomeIcon icon={["far", "home"]} color="#545454"/>
+            </div>
             <div
               className="Navbar-body-link"
               onClick={() => {
@@ -67,6 +66,8 @@ const Navbar = (): ReactElement => {
               </>
             )}
             {isAuthenticated && <LogoutButton />}
+            </div>
+            </div>
           </div>
         </div>
       </div>
