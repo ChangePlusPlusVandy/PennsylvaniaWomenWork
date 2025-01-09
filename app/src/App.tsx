@@ -6,15 +6,17 @@ import MenteeDashboard from "./pages/MenteeDashboard";
 import CreateWorkshop from "./pages/CreateWorkshop";
 import CreateMeeting from "./pages/CreateMeeting";
 import AuthCallback from "./pages/auth-callback";
+import LoginRedirect from "./pages/LoginRedirect";
 
 function App(): ReactElement {
   return (
     <div className="App">
       <Routes>
+        <Route path="/login" element={<LoginRedirect />} />
         <Route path="/" element={<Home />} />
         <Route path="/home" element={<Home />} />
         <Route path="/mentor" element={<MentorDashboard />} />
-        <Route path="/mentee" element={<MenteeDashboard/>}/>
+        <Route path="/mentee" element={<MenteeDashboard />} />
         <Route path="/create-workshop" element={<CreateWorkshop />} />
         <Route path="/create-meeting" element={<CreateMeeting />} />
         <Route path="/callback" element={<AuthCallback />} />
