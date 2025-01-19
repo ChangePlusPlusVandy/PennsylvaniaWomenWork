@@ -3,6 +3,7 @@ import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import MentorDashboard from "./pages/MentorDashboard";
 import MenteeDashboard from "./pages/MenteeDashboard";
+import ConfirmLogout from "./pages/ConfirmLogout";
 import CreateWorkshop from "./pages/CreateWorkshop";
 import CreateMeeting from "./pages/CreateMeeting";
 import MenteeInformation from "./pages/MenteeInformation";
@@ -18,6 +19,7 @@ function App(): ReactElement {
         <Route path="/home" element={<Home />} />
         <Route path="/mentor" element={<MentorDashboard />} />
         <Route path="/mentee" element={<MenteeDashboard />} />
+        <Route path="/confirmLogout" element={<ConfirmLogout />} />
         <Route path="/create-workshop" element={<CreateWorkshop />} />
         <Route path="/create-meeting" element={<CreateMeeting />} />
         <Route path="/mentor/mentee-information" element={<MenteeInformation />} />
