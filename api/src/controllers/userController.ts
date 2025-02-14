@@ -134,3 +134,28 @@ export const getCurrentUser = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error fetching user", error });
   }
 };
+
+export const getCurrentUserById = async (req: Request, res: Response) => {
+  const { userid } = req.query;
+
+  if (!userid) {
+    return res.status(400).json({ message: "User ID is required" });
+  }
+
+  try {
+    const user = await User.findOne({ _id: userid });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      username: user.username,
+      role: user.role,
+      userid: user._id,
+    });
+  } catch (error) {
+    console.error("Error fetching user:", error);
+    res.status(500).json({ message: "Error fetching user", error });
+  }
+};

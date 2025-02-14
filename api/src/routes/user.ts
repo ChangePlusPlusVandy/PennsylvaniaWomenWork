@@ -4,6 +4,7 @@ import {
   sendEmail,
   addMeeting,
   getCurrentUser,
+  getCurrentUserById,
 } from "../controllers/userController";
 
 const router = express.Router();
@@ -19,5 +20,8 @@ router.post("/add-meeting", addMeeting);
 
 // Route to get current user information
 router.get("/current-user", getCurrentUser);
+
+// Route to get current user information by ID
+router.get("/current-userid", getCurrentUserById);
 
 export default router;
