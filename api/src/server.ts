@@ -22,4 +22,6 @@ app.use("/user", routes.user);
 app.use("/api", router);
 app.use("/workshop", routes.workshop);
 
-app.listen(process.env.PORT || 8000, () => console.log("Server running at localhost:8000"));
+app.listen(process.env.PORT || 8000, () =>
+  console.log("Server running at localhost:8000"),
+);
