@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import { useAuth0 } from "@auth0/auth0-react";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useCurrentUser } from "./hooks/useCurrentUser";
+import { tier1Roles, tier2Roles, tier3Roles } from "./utils/roles";
 
 function App(): ReactElement {
   const { isAuthenticated, user: Auth0User } = useAuth0();
@@ -44,7 +45,7 @@ function App(): ReactElement {
               element={
                 <ProtectedRoute
                   element={<MentorDashboard />}
-                  allowedRoles={["mentor", "admin"]}
+                  allowedRoles={[...tier1Roles, ...tier2Roles]}
                 />
               }
             />
@@ -54,7 +55,7 @@ function App(): ReactElement {
               element={
                 <ProtectedRoute
                   element={<MenteeDashboard />}
-                  allowedRoles={["mentee"]}
+                  allowedRoles={[...tier1Roles, ...tier3Roles]}
                 />
               }
             />)
@@ -64,7 +65,7 @@ function App(): ReactElement {
                 element={
                   <ProtectedRoute
                     element={<MentorDashboard />}
-                    allowedRoles={["mentor", "admin"]}
+                    allowedRoles={[...tier1Roles, ...tier2Roles]}
                   />
                 }
               />)}
@@ -74,7 +75,7 @@ function App(): ReactElement {
               element={
                 <ProtectedRoute
                   element={<MenteeDashboard />}
-                  allowedRoles={["mentee", "admin"]}
+                  allowedRoles={[...tier1Roles, ...tier3Roles]}
                 />
               }
             />
@@ -84,7 +85,7 @@ function App(): ReactElement {
               element={
                 <ProtectedRoute
                   element={<CreateWorkshop />}
-                  allowedRoles={["mentor", "admin"]}
+                  allowedRoles={[...tier1Roles, ...tier2Roles]}
                 />
               }
             />
@@ -93,7 +94,7 @@ function App(): ReactElement {
               element={
                 <ProtectedRoute
                   element={<CreateMeeting />}
-                  allowedRoles={["mentor", "admin"]}
+                  allowedRoles={[...tier1Roles, ...tier2Roles]}
                 />
               }
             />
@@ -103,7 +104,7 @@ function App(): ReactElement {
               element={
                 <ProtectedRoute
                   element={<MenteeInformation />}
-                  allowedRoles={["mentor", "admin"]}
+                  allowedRoles={[...tier1Roles, ...tier2Roles]}
                 />
               }
             />
@@ -112,7 +113,7 @@ function App(): ReactElement {
               element={
                 <ProtectedRoute
                   element={<WorkshopInformation />}
-                  allowedRoles={["mentor", "admin"]}
+                  allowedRoles={[...tier1Roles, ...tier2Roles]}
                 />
               }
             />

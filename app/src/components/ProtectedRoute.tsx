@@ -22,6 +22,8 @@ const ProtectedRoute = ({ element, allowedRoles }: ProtectedRouteProps) => {
   }
 
   if (user && !allowedRoles.includes(user.role)) {
+    console.log("Current user role: ", user.role);
+    console.log("Allowed roles: ", allowedRoles);
     return <Navigate to="/home" replace />;
   }
 
