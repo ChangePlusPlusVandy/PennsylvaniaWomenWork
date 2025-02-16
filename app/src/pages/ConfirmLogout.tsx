@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Navbar from "../components/Navbar";
 
-const MenteeDashboard = () => {
+const ConfirmLogout = () => {
   return (
     <>
       <Navbar />
@@ -16,4 +16,4 @@ const MenteeDashboard = () => {
   );
 };
 
-export default MenteeDashboard;
+export default ConfirmLogout;

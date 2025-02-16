@@ -19,52 +19,38 @@ const MenteeInformation = () => {
     <>
       <Navbar />
       <div className="Flex-row Justify-content--spaceBetween">
-        <div className="Block Width--80 Margin-right--40 Margin-left--40 Margin-top--40 Height--100vh">
+        <div className="Mentee-info-block">
           <div className="Width--60">
-            <div className="Flex-row Margin-bottom--40 Margin-left--60 Margin-right--100 Margin-top--30">
+            <div className="Flex-row--mentee-info">
               <div>
-                <div className="Text-fontSize--22 Text-color--gray-1000 Margin-bottom--6 Margin-top--40 ">
+                <div className="Mentee-name--text">
                   {menteeData.name}
                 </div>
-                <div className="Text-fontSize--15 Text-color--gray-600 Margin-top--7">
+                <div className="Mentee-role--text">
                   {menteeData.role}
                 </div>
               </div>
             </div>
 
-            <div className="Flex-row Margin-bottom--20 Margin-right--100 Margin-left--60">
-              <div className="Text-fontSize--18 Text-color--gray-1000">
+            <div className="Flex-row--mentee-description">
+              <div className="Mentee-info--text">
                 Information
               </div>
             </div>
-            <div className="Flex-row Margin-bottom--40 Margin-right--100 Margin-left--60">
-              <div className="Text-color--gray-600 Text-fontSize--16">
+            <div className="Flex-row--mentee-bio">
+              <div className="Mentee-description--text">
                 {menteeData.description}
               </div>
             </div>
 
             <div>
               <div>
-                <div className="Flex-row Justify-content--spaceBetween Margin-bottom--24 Margin-left--60">
+                <div className="Flex-row--mentee-tabs">
                   {["Workshops", "Meetings", "Schedule New"].map((tab) => (
                     <div
                       key={tab}
+                      className = {`Mentee-tabs__tab ${activeTab === tab ? 'Mentee-tabs__tab--active' : ''}`}
                       onClick={() => setActiveTab(tab)}
-                      className={
-                        "Cursor--pointer Padding-bottom--8 Margin-right--32 Text-fontSize--15 " +
-                        (activeTab === tab
-                          ? "Border-bottom--blue Text-color--gray-1000"
-                          : "Text-color--gray-600")
-                      }
-                      style={{
-                        cursor: "pointer",
-                        paddingBottom: "8px",
-                        borderBottom:
-                          activeTab === tab
-                            ? "2px solid #0096C0"
-                            : "2px solid transparent",
-                        marginRight: "48px",
-                      }}
                     >
                       {tab}
                     </div>
@@ -74,11 +60,7 @@ const MenteeInformation = () => {
                 {activeTab === "Workshops" && (
                   <div>
                     <div
-                      className="Text-fontSize--20 Text-color--teal-800 Margin-left--60 Margin-bottom--20"
-                      style={{
-                        borderBottom: "2px solid rgba(84, 84, 84, 0.3)",
-                        paddingBottom: "10px",
-                      }}
+                      className="Workshop-header"
                     >
                       Current Workshops
                     </div>
@@ -86,21 +68,16 @@ const MenteeInformation = () => {
                       {menteeData.workshops.map((workshop, index) => (
                         <div
                           key={index}
-                          className="Text-fontSize--16 Text-color--gray-600 Margin-bottom--24 Flex-row Align-items--center"
+                          className="Course-list-element"
                         >
                           <div
-                            className="Background-color--teal-1000 Border--rounded Margin-right--16"
-                            style={{
-                              width: "8px",
-                              height: "8px",
-                              flexShrink: 0,
-                            }}
+                            className="Course-list-bullet"
                           />
                           {workshop}
                         </div>
                       ))}
                     </div>
-                    <div className="Button Button-color--teal-1000 Border-radius--4 Text-color--white Margin-top--32 Margin-left--80">
+                    <div className="Button Button-color--teal-1000 Margin-left--80">
                       Assign New Courses
                     </div>
                   </div>
@@ -109,38 +86,32 @@ const MenteeInformation = () => {
                 {activeTab === "Meetings" && (
                   <div>
                     <div
-                      className="Text-fontSize--16 Text-color--gray-800 Margin-left--60 Margin-bottom--20"
-                      style={{
-                        borderBottom: "2px solid rgba(84, 84, 84, 0.3)",
-                        paddingBottom: "10px",
-                      }}
+                      className="Calendar-upcoming"
                     >
                       Upcoming
                     </div>
-                    <div className="Margin-top--20 ">
-                      <div className="Flex-row Margin-bottom--10">
+                      <div className="Flex-row-calendar">
                         <div
-                          className="Margin-right--40"
-                          style={{ textAlign: "center", width: "40px" }}
+                          className="Calendar-block"
                         >
-                          <div className="Text-color--gray-800">wed</div>
-                          <div className="Text-fontSize--30 Text-color--gray-1000">
+                          <div className="Calendar-day">wed</div>
+                          <div className="Calendar-date">
                             25
                           </div>
                         </div>
                         <div>
-                          <div className="Text-fontSize--16 Text-color--gray-1000">
+                          <div className="Calendar-event">
                             Mock Interview Session
                           </div>
-                          <div className="Text-fontSize--14 Text-color--gray-800">
+                          <div className="Calendar-description">
                             Practice your interview skills with an industry
                             professional
                           </div>
                         </div>
                       </div>
-                      <div className="Flex-row Margin-bottom--10 Margin-left--60">
+                      <div className="Flex-row-calendar">
                         <div
-                          className="Button Button-color--teal-1000 Border-radius--4 Text-color--white Margin-top--32 Margin-left--80"
+                          className="Button Button-color--teal-1000 Width--40"
                           onClick={() => {
                             navigate("/create-meeting")
                           }}
@@ -148,75 +119,62 @@ const MenteeInformation = () => {
                           Add New Meeting Notes
                         </div>
                       </div>
-                    </div>
-
                     <div
-                      className="Text-fontSize--16 Text-color--gray-800 Margin-left--60 Margin-bottom--20"
-                      style={{
-                        borderBottom: "2px solid rgba(84, 84, 84, 0.3)",
-                        paddingBottom: "10px",
-                      }}
+                      className="Calendar-upcoming"
                     >
                       Past
                     </div>
-                    <div className="Margin-top--20 ">
-                      <div className="Flex-row Margin-bottom--10 Margin-left--60">
+                      <div className="Flex-row-calendar">
                         <div
-                          className="Margin-right--40"
-                          style={{ textAlign: "center", width: "40px" }}
+                          className="Calendar-block"
                         >
-                          <div className="Text-color--gray-800">wed</div>
-                          <div className="Text-fontSize--30 Text-color--gray-1000">
+                          <div className="Calendar-day">wed</div>
+                          <div className="Calendar-date">
                             25
                           </div>
                         </div>
                         <div>
-                          <div className="Text-fontSize--16 Text-color--gray-1000">
+                          <div className="Calendar-event">
                             Mock Interview Session
                           </div>
-                          <div className="Text-fontSize--14 Text-color--gray-800">
+                          <div className="Calendar-description">
                             Practice your interview skills with an industry
                             professional
                           </div>
                         </div>
                       </div>
-                      <div className="Flex-row Margin-bottom--10 Margin-left--60">
-                        <div className="Button Button-color--teal-1000 Border-radius--4 Text-color--white Margin-top--32 Margin-left--80">
+                      <div className="Flex-row-calendar">
+                        <div className="Button Button-color--teal-1000 Width--40">
                           Add New Meeting Notes
                         </div>
                       </div>
-                    </div>
                   </div>
                 )}
 
                 {activeTab === "Schedule New" && (
                   <div>
                     <div
-                      className="Text-fontSize--18 Text-color--gray-800 Margin-left--60 Margin-bottom--20"
-                      style={{
-                        borderBottom: "2px solid rgba(84, 84, 84, 0.3)",
-                        paddingBottom: "10px",
-                      }}
+                      className="Workshop-header"
                     >
                       Schedule A New Meeting
                     </div>
-                    <div className="Flex-row Margin-bottom--20 Margin-left--60">
-                      <div className="Text-fontSize--16 Text-color--gray-600">
+                    <div className="Flex-row-meeting-info">
+                      <div className="Meeting-info--text">
                         Date:
                       </div>
                     </div>
-                    <div className="Flex-row Margin-bottom--20 Margin-left--60">
-                      <div className="Text-fontSize--16 Text-color--gray-600">
+                    <div className="Flex-row-meeting-info">
+                      <div className="Meeting-info--text">
                         Time:
                       </div>
                     </div>
-                    <div className="Flex-row Margin-bottom--40 Margin-left--60">
-                      <div className="Text-fontSize--16 Text-color--gray-600">
+                    <div className="Flex-row-meeting-info">
+                      <div className="Meeting-info--text">
                         Description:
                       </div>
                     </div>
-                    <div className="Flex-row Margin-bottom--40 Margin-left--60">
-                      <div className=" Button Button-color--teal-1000 Border-radius--4 Text-color--white Margin-top--32 Margin-left--80">
+                    <div className="Flex-row-meeting-info--description">
+                      <div className="Button Button-color--teal-1000 Margin-left--80">
                         Schedule Meeting
                       </div>
                     </div>

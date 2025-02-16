@@ -1,6 +1,9 @@
 import { Request, Response } from "express";
 import sgMail from "@sendgrid/mail";
 import User from "../model/User";
+import { management } from "../config/auth0-user-management";
+import generatePassword from "generate-password";
+import { error } from "console";
 
 export const createUser = async (req: Request, res: Response) => {
   const {
@@ -53,14 +56,54 @@ export const sendEmail = async (req: Request, res: Response) => {
       throw new Error("SendGrid API key or test email is missing");
     }
 
-    const { email, name, role } = req.body;
+    const { email, name, role, email_type } = req.body;
 
     sgMail.setApiKey(SENDGRID_API_KEY);
 
-    const templateId =
-      role.toLowerCase().trim() === "mentor"
-        ? "d-1694192e437348e2a0517103acae3f00"
-        : "d-7e26b82cf8624bafa4077b6ed73b52bf";
+    const dummy_password = generatePassword.generate({
+      length: 15,
+      numbers: true,
+      symbols: true,
+      uppercase: true,
+      lowercase: true,
+      strict: true,
+    });
+
+    let templateId: string;
+    const cleanedUserRole = role.toLowerCase().trim();
+
+    if (cleanedUserRole === "mentor") {
+      templateId = "d-1694192e437348e2a0517103acae3f00";
+    } else if (cleanedUserRole === "mentee") {
+      templateId = "d-7e26b82cf8624bafa4077b6ed73b52bf";
+    } else {
+      throw new Error("Invalid role type");
+    }
+
+    // create the user
+    const newUser = await management.users.create({
+      email: email,
+      connection: "Username-Password-Authentication",
+      password: dummy_password,
+      email_verified: true,
+    });
+
+    if (newUser.status === 409) {
+      throw new Error("That user already exists");
+    } else if (newUser.status !== 201) {
+      throw new Error("Failed to create new user");
+    }
+
+    // create user link verification
+    const userId = newUser.data.user_id;
+
+    const linkResponse = await management.tickets.changePassword({
+      user_id: userId,
+    });
+
+    if (linkResponse.status !== 201) {
+      throw new Error("Could not complete user sign up flow");
+    }
 
     await sgMail.send({
       to: email,
@@ -68,6 +111,7 @@ export const sendEmail = async (req: Request, res: Response) => {
       templateId: templateId,
       dynamicTemplateData: {
         name: name,
+        password_reset_link: linkResponse.data.ticket,
       },
     });
 
@@ -132,6 +176,58 @@ export const getCurrentUser = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error fetching user:", error);
     res.status(500).json({ message: "Error fetching user", error });
+  }
+};
+
+export const updateUser = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+  const allowedFields = [
+    "firstName",
+    "lastName",
+    "username",
+    "email",
+    "role",
+    "workshopIDs",
+    "menteeInfo",
+    "meetingSchedule",
+    "mentorData",
+    "meetings",
+  ];
+
+  try {
+    const updateData: Partial<typeof User> = {};
+    Object.keys(req.body).forEach((key) => {
+      if (allowedFields.includes(key)) {
+        updateData[key as keyof typeof updateData] = req.body[key];
+      }
+    });
+
+    if (Object.keys(updateData).length === 0) {
+      return res
+        .status(400)
+        .json({ message: "No valid fields provided for update" });
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { $set: updateData },
+      { new: true, runValidators: true }, // Return updated document and validate
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+      message: "User updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    console.error("Error updating user:", error);
+    res.status(500).json({
+      message: "Error updating user",
+      error,
+    });
   }
 };
 

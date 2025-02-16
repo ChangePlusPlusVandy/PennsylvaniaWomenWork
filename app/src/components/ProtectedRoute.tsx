@@ -1,7 +1,8 @@
 import { ReactElement } from "react";
 import { Navigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
-import { useCurrentUser } from "../hooks/useCurrentUser";
+import { useUser } from "../contexts/UserContext";
+import LoginLoading from "../pages/LoginLoading";
 
 interface ProtectedRouteProps {
   element: ReactElement;
@@ -9,16 +10,15 @@ interface ProtectedRouteProps {
 }
 
 const ProtectedRoute = ({ element, allowedRoles }: ProtectedRouteProps) => {
-  const { isAuthenticated, user: auth0User } = useAuth0();
-  const username = auth0User?.email || "";
-  const { user, loading } = useCurrentUser(username);
+  const { isAuthenticated } = useAuth0();
+  const { user, loading } = useUser();
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
   if (loading) {
-    return <div>Loading...</div>; // You might want to use a proper loading component
+    return <LoginLoading />;
   }
 
   if (user && !allowedRoles.includes(user.role)) {

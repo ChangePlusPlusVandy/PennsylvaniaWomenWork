@@ -33,6 +33,9 @@
 
     &-color {
         height: 100px;
+        padding: 20;
+        align-items: center;
+        justify-content: center;
     }
 
     &-name {
@@ -47,3 +50,21 @@
         padding: 10px 20px 20px 20px;
     }
 }
+.back-button {
+    position: absolute;
+    top: 80px;
+    left: 20px;
+    border: none;
+    background: var(--pww-color-light-1000);
+    padding: 8px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 18px;
+    color: var(--pww-color-gray-1000);
+    transition: background-color 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+  
+    &:hover {
+      background-color: var(--pww-color-gray-200);
+    }
+  }

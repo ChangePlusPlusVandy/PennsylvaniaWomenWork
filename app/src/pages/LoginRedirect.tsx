@@ -4,13 +4,15 @@ import { useAuth0 } from "@auth0/auth0-react";
 const LoginRedirect = () => {
   const { loginWithRedirect } = useAuth0();
 
+  const returnPath = window.location.pathname === "/" ? "/home" : window.location.pathname;
+
   useEffect(() => {
     loginWithRedirect({
       appState: {
-        returnTo: "/home",
+        returnTo: returnPath,
       },
     });
-  }, [loginWithRedirect]);
+  }, [loginWithRedirect, returnPath]);
 
   return null;
 };

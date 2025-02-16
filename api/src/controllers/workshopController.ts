@@ -1,5 +1,44 @@
 import { Request, Response } from "express";
 import { Workshop } from "../model/Workshop";
+import AWS from "aws-sdk";
+import dotenv from "dotenv";
+
+dotenv.config();
+
+AWS.config.update({
+  accessKeyId: process.env.AWS_ACCESS_KEY_ID,
+  secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
+  region: process.env.AWS_REGION,
+});
+
+const s3 = new AWS.S3();
+const bucketName = process.env.S3_BUCKET_NAME;
+
+// Generate pre-signed URL for file upload
+export const generatePresignedUrl = async (req: Request, res: Response) => {
+  const { fileName } = req.query;
+
+  if (!fileName) {
+    return res.status(400).json({ message: "fileName required" });
+  }
+
+  const objectKey = `${Date.now()}-${fileName}`; // Generate a unique file key
+  const params = {
+    Bucket: bucketName,
+    Key: objectKey,
+    Expires: 60 * 5, // URL expires in 5 minutes
+  };
+
+  try {
+    const url = await s3.getSignedUrlPromise("putObject", params);
+    res.json({ url, objectKey }); // Send both URL and object key
+  } catch (error) {
+    console.error("Error generating pre-signed URL:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to generate pre-signed URL", error });
+  }
+};
 
 export const createWorkshop = async (req: Request, res: Response) => {
   const { name, description, s3id } = req.body;
@@ -24,6 +63,7 @@ export const createWorkshop = async (req: Request, res: Response) => {
   }
 };
 
+// TODO: convert obj keys to URLs if bucket is public
 export const getWorkshop = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;

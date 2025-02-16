@@ -21,7 +21,7 @@ const Logout = (): ReactElement => {
             <div className="Button Button-color--yellow-1000 Margin-top--20">
               <div
                 onClick={() => {
-                  navigate("/login")
+                  navigate("/")
                 }}
               >
                 Login

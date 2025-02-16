@@ -107,5 +107,5 @@ export const api: any = {
         console.error("Error deleting data: ", err);
         throw err;
       });
-  },
+  }
 };

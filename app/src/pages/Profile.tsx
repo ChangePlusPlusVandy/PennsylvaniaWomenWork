@@ -1,29 +1,31 @@
-// make a dummy profile page
 import React from "react"
 import Navbar from "../components/Navbar"
-import { useCurrentUser } from "../hooks/useCurrentUser"
+import { useUser } from "../contexts/UserContext"
 import { useAuth0 } from "@auth0/auth0-react"
+import { useNavigate } from "react-router-dom"
+
 
 const Profile = () => {
-  const {
-    user: auth0User,
-    isLoading: authLoading,
-    error: authError,
-  } = useAuth0()
-  const username = auth0User?.email || ""
-  const { user, error, loading } = useCurrentUser(username) // Fetch user details from backend
+  const { user: auth0User } = useAuth0()
+  const { user, error, loading } = useUser()
 
   return (
     <>
       <Navbar />
       <div className="Profile">
+        <button
+          onClick={() => navigate(-1)}
+          className="back-button"
+        >
+          ←
+        </button>
         <div className="Block">
           <div className="Block-header">Your Profile</div>
           {/* Display Auth0 or Backend loading/errors */}
-          {authLoading || loading ? (
+          {loading ? (
             <p>Loading user info...</p>
-          ) : authError || error ? (
-            <p>Error: {authError?.message || error}</p>
+          ) : error ? (
+            <p>Error: {error}</p>
           ) : auth0User && user ? (
             <div>
               <p>Username: {user.username}</p>

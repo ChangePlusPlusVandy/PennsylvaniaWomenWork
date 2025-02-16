@@ -12,10 +12,11 @@
 /coverage
 
 # production
-/build
+**/build
 
 # IDE
 /.idea
+.vscode
 
 # misc
 .DS_Store
