@@ -16,12 +16,23 @@ app.use(cors({ origin: "http://localhost:3000" })); // Connect to the frontend P
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-connectDB();
+// Only connect to DB if not in test environment
+if (process.env.NODE_ENV !== "test") {
+  connectDB();
+}
 
-app.use("/user", routes.user);
+// Use all routes
 app.use("/api", router);
 
 app.use("/api/workshop", routes.workshop);
 app.use("/api/resource", routes.resource);
 
-app.listen(process.env.PORT || 8000, () => console.log("Server running..."));
+// Export the server instance for testing
+export { app };
+
+// Only listen if not in test environment
+if (process.env.NODE_ENV !== "test") {
+  app.listen(process.env.PORT || 8000, () => {
+    console.log("Server running...");
+  });
+}

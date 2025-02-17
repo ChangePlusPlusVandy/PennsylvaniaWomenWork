@@ -1,9 +1,9 @@
-import React from "react"
-import { useNavigate } from "react-router-dom"
-import Navbar from "../components/Navbar"
-import pdf from "../assets/pdf.jpg"
-import docx from "../assets/docx.png"
-import video from "../assets/video.png"
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import pdf from "../assets/pdf.jpg";
+import docx from "../assets/docx.png";
+import video from "../assets/video.png";
 
 // 🔹 Define Fake Data
 const fakeFiles = [
@@ -25,7 +25,7 @@ const fakeFiles = [
     type: "docx",
     icon: docx,
   },
-]
+];
 
 const MenteeCourseInformation = () => {
   return (
@@ -57,7 +57,7 @@ const MenteeCourseInformation = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default MenteeCourseInformation
+export default MenteeCourseInformation;
