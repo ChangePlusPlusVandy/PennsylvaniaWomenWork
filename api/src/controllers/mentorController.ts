@@ -16,14 +16,20 @@ export const getMenteesForMentor = async (
       return;
     }
 
+    // console.log("Mentor object:", mentor);
+    // console.log("menteeInfo field:", mentor.menteeInfo);
+
     const menteeIds = mentor.menteeInfo;
+    // console.log("menteeIds field:", menteeIds);
 
     const mentees = await User.find({
       _id: { $in: menteeIds },
       role: "mentee",
     });
 
-    res.status(200).json(mentees);
+    // console.log("mentees: ", mentees)
+
+    res.status(200).json({ mentees });
   } catch (error) {
     console.error("Error in getAllMenteesForMentor:", error);
     res.status(500).json({ message: "An error occurred", error });
