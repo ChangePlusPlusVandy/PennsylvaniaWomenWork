@@ -9,6 +9,7 @@ export interface EventData {
   title: string;
   description: string;
   fullDescription: string;
+  formattedDate?: string;
 }
 
 interface EventProps {

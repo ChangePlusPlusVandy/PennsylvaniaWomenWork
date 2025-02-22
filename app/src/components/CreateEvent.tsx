@@ -2,6 +2,7 @@ import React from "react";
 import Modal from "./Modal";
 import { Formik, Form, Field, FormikHelpers } from "formik";
 import * as yup from "yup";
+import axios from "axios";
 
 // Define the shape of our form values
 interface CreateEventFormValues {
@@ -50,11 +51,19 @@ const validationSchema = yup.object().shape({
 interface CreateEventModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSubmit: (eventData: {
+    name: string;
+    description: string;
+    date: string;
+    userIds: string[];
+    calendarLink?: string;
+  }) => void;
 }
 
 const CreateEventModal: React.FC<CreateEventModalProps> = ({
   isOpen,
   onClose,
+  onSubmit,
 }) => {
   // The function that handles form submission
   const handleSubmit = async (
@@ -62,12 +71,20 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
     { setSubmitting, resetForm }: FormikHelpers<CreateEventFormValues>,
   ) => {
     try {
-      // TODO: Replace with your own event creation logic
-      console.log("Event created with values:", values);
+      const eventData = {
+        name: values.name,
+        description: values.description,
+        date: new Date(values.date).toISOString(), // Ensure proper date format
+        startTime: values.startTime,
+        endTime: values.endTime,
+        userIds: ["64a6b8c5f5c6dca8ef18d1f1"], // ✅ Hardcoded user ID for now
+        calendarLink: values.invitationLink,
+      };
 
-      // Optionally reset the form after submit
+      console.log("Submitting Event Data:", eventData); // Debugging
+
+      await onSubmit(eventData); // Send to MentorDashboard.tsx
       resetForm();
-      // Close the modal after successful creation
       onClose();
     } catch (error) {
       console.error("Error creating event:", error);
