@@ -19,4 +19,4 @@ router.use("/resource", resource);
 export default router;
 
 // export { workshops }
-export { user, workshop, resource };
+export { user, workshop, resource, mentor, mentee, event };

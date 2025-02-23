@@ -7,6 +7,9 @@ import {
 
 const router = express.Router();
 
+// Route to get all workshops for a specific mentee
+router.get("/:menteeId/workshops", getWorkshopsForMentee);
+
 // Route to get all workshops for a specific mentee -- assigned
 router.get(":menteeId/workshops", getWorkshopsForMentee);
 
