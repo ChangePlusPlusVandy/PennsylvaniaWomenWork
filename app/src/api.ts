@@ -1,26 +1,22 @@
 export const api: any = {
   get: async (route: string): Promise<any> => {
     const url = `${process.env.REACT_APP_API_URL as string}${route}`;
-
     return await fetch(url, {
       method: "GET",
       headers: {
-        "Access-Control-Allow-Origin": "*",
-        mode: "no-cors",
         "Content-Type": "application/json",
       },
     })
       .then(async (res) => {
         if (!res.ok) {
-          throw new Error("Network response was not ok");
+          const text = await res.text();
+          throw new Error(`Network response was not ok: ${res.status} - ${text.slice(0, 100)}...`);
         }
         const json = await res.json();
-        const response = {
+        return {
           data: json,
           status: res.status,
         };
-
-        return response;
       })
       .catch((err) => {
         console.error("Error fetching data: ", err);
@@ -61,8 +57,6 @@ export const api: any = {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        mode: "no-cors",
       },
       body: data,
     })
@@ -85,11 +79,6 @@ export const api: any = {
 
     return await fetch(url, {
       method: "DELETE",
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        mode: "no-cors",
-      },
-      body: data,
     })
       .then(async (res) => {
         if (!res.ok) {
