@@ -2,8 +2,9 @@ import { Request, Response } from "express";
 import { Workshop } from "../model/Workshop";
 import AWS from "aws-sdk";
 import dotenv from "dotenv";
+import path from "path";
 
-dotenv.config();
+dotenv.config({ path: path.resolve(__dirname, "../.env.staging") });
 
 AWS.config.update({
   accessKeyId: process.env.AWS_ACCESS_KEY_ID,
