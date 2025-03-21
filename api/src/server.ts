@@ -12,7 +12,7 @@ import router from "./routes";
 var cors = require("cors");
 
 const app = express();
-app.use(cors({ origin: "http://localhost:3000" })); // Connect to the frontend PORT 3000
+app.use(cors({ origin: process.env.CLIENT_ORIGIN_URL }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -24,4 +24,6 @@ app.use("/api", router);
 app.use("/api/workshop", routes.workshop);
 app.use("/api/resource", routes.resource);
 
-app.listen(process.env.PORT || 8000, () => console.log("Server running..."));
+const PORT = process.env.PORT || 8000;
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}...`));

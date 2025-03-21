@@ -1,0 +1,18 @@
+{
+  "name": "pennsylvania-women-work",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "api",
+    "app"
+  ],
+  "scripts": {
+    "start:dev:api": "cd api && npm run dev",
+    "start:dev:app": "cd app && npm start",
+    "start:prod:api": "cd api && npm run start:prod",
+    "start:prod:app": "cd app && npm run start:prod",
+    "build": "npm run build:api && npm run build:app",
+    "build:api": "cd api && npm run build",
+    "build:app": "cd app && npm run build"
+  }
+}

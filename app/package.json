@@ -1,5 +1,5 @@
 {
-  "name": "my-app",
+  "name": "@pennsylvania-women-work/app",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
@@ -23,12 +23,14 @@
     "react-router-dom": "^6.26.2",
     "react-scripts": "5.0.1",
     "sass": "^1.78.0",
+    "serve": "^14.2.4",
     "typescript": "^4.9.5",
     "web-vitals": "^2.1.4",
     "yup": "^1.4.0"
   },
   "scripts": {
     "start": "react-scripts start",
+    "start:prod": "serve -s build",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
