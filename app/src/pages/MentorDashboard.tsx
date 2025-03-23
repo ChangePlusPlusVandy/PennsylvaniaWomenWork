@@ -46,6 +46,16 @@ const MentorDashboard = () => {
     }
     console.log("userId", userId)
 
+    const fetchUserEvents = async () => {
+      try {
+        const response = await api.get(`/api/event/${userId}`);
+        setEvents(response.data);
+      } catch (err) {
+        console.error("Error fetching events:", err);
+        setError("Failed to load events.");
+      }
+    };
+
     const fetchMentees = async () => {
       try {
         const encodedUserId = encodeURIComponent(userId) // ✅ URL-safe encoding
@@ -61,6 +71,7 @@ const MentorDashboard = () => {
     }
 
     fetchMentees()
+    fetchUserEvents()
   }, [user, userId])
 
   const eventsByMonth: { [key: string]: EventData[] } = events
@@ -106,22 +117,25 @@ const MentorDashboard = () => {
   }
 
   const handleCreateEvent = async (eventData: {
-    name: string
-    description: string
-    date: string
-    userIds: string[]
-    calendarLink?: string
+    name: string;
+    description: string;
+    date: string;
+    roles: string[]; // ✅ new field
+    calendarLink?: string;
   }) => {
     try {
-      const response = await api.post(`/api/event`, eventData)
-      console.log(response.data.event)
+      const response = await api.post(`/api/event`, eventData);
+      console.log("Event created:", response.data.event);
 
-      setEvents((prev) => [...prev, response.data.event])
-      setCreateEventModal(false)
+      // Add new event to the state
+      setEvents((prev) => [...prev, response.data.event]);
+      setCreateEventModal(false);
     } catch (error) {
-      setError("Error creating event.")
+      console.error("Error creating event:", error);
+      setError("Error creating event.");
     }
-  }
+  };
+
 
   const handleEventClick = (event: EventData) => {
     setSelectedEvent(event)
