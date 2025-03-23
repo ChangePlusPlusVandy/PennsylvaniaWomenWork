@@ -23,26 +23,24 @@ const MenteeDashboard = () => {
   useEffect(() => {
     if (!userId) return;
 
-
-      const fetchData = async () => {
+    const fetchData = async () => {
       try {
         const [eventsResponse, workshopsResponse] = await Promise.all([
           api.get(`/api/event/${userId}`),
           api.get(`/api/workshop/user/${userId}`),
         ]);
 
-          setEvents(
-              eventsResponse.data.map((event: any) => ({
-                  name: event.name,
-                  description: event.description,
-                  date: event.date,
-                  userIds: event.users || [],
-                  calendarLink: event.calendarLink || "",
-              }))
-          );
+        setEvents(
+          eventsResponse.data.map((event: any) => ({
+            name: event.name,
+            description: event.description,
+            date: event.date,
+            userIds: event.users || [],
+            calendarLink: event.calendarLink || "",
+          })),
+        );
 
-
-          setWorkshops(
+        setWorkshops(
           workshopsResponse.data.map((workshop: any) => ({
             id: workshop._id,
             courseName: workshop.name,
@@ -53,9 +51,7 @@ const MenteeDashboard = () => {
       }
     };
 
-
-
-    fetchData()
+    fetchData();
   }, [userId]);
 
   const handleClick = (id: string) => {

@@ -60,58 +60,58 @@ const Navbar = (): ReactElement => {
   ];
 
   return (
-      <div className="Navbar">
-        <div className="Navbar-body">
-          {/* Logo click = go to correct dashboard */}
-          <div
-              className="Navbar-body-logo"
-              onClick={() => navigate(getHomePath())}
-          />
+    <div className="Navbar">
+      <div className="Navbar-body">
+        {/* Logo click = go to correct dashboard */}
+        <div
+          className="Navbar-body-logo"
+          onClick={() => navigate(getHomePath())}
+        />
 
-          <div className="Navbar-left">
-            {/* Show links user has permission for */}
-            {navItems
-                .filter((item) => user && item.roles.includes(user.role))
-                .map((tab) => (
-                    <div
-                        key={tab.path}
-                        className={`Navbar-body-link ${
-                            location.pathname === tab.path ? "Navbar-active" : ""
-                        }`}
-                        onClick={() => navigate(tab.path)}
-                    >
-                      {tab.label}
-                    </div>
-                ))}
+        <div className="Navbar-left">
+          {/* Show links user has permission for */}
+          {navItems
+            .filter((item) => user && item.roles.includes(user.role))
+            .map((tab) => (
+              <div
+                key={tab.path}
+                className={`Navbar-body-link ${
+                  location.pathname === tab.path ? "Navbar-active" : ""
+                }`}
+                onClick={() => navigate(tab.path)}
+              >
+                {tab.label}
+              </div>
+            ))}
 
-            {!isAuthenticated ? (
-                <div className="Flex-row">
-                  <div
-                      className="Button Button-color--teal-1000 Margin-right--20"
-                      onClick={() => navigate("/")}
-                  >
-                    Log In
-                  </div>
-                  <div
-                      className="Button Button-color--teal-1000"
-                      onClick={() => navigate("/signup")}
-                  >
-                    Sign Up
-                  </div>
-                </div>
-            ) : (
-                <div
-                    className="Button Button-color--teal-1000"
-                    onClick={() => {
-                      logout();
-                    }}
-                >
-                  Log Out
-                </div>
-            )}
-          </div>
+          {!isAuthenticated ? (
+            <div className="Flex-row">
+              <div
+                className="Button Button-color--teal-1000 Margin-right--20"
+                onClick={() => navigate("/")}
+              >
+                Log In
+              </div>
+              <div
+                className="Button Button-color--teal-1000"
+                onClick={() => navigate("/signup")}
+              >
+                Sign Up
+              </div>
+            </div>
+          ) : (
+            <div
+              className="Button Button-color--teal-1000"
+              onClick={() => {
+                logout();
+              }}
+            >
+              Log Out
+            </div>
+          )}
         </div>
       </div>
+    </div>
   );
 };
 

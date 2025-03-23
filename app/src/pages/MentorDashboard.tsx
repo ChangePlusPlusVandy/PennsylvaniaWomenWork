@@ -1,50 +1,50 @@
-import React, { useEffect, useState } from "react"
-import Navbar from "../components/Navbar"
-import { useNavigate } from "react-router-dom"
-import Modal from "../components/Modal"
-import CreateEventModal from "../components/CreateEvent"
-import Event, { EventData } from "../components/Event"
-import { useUser } from "../contexts/UserContext"
-import { api } from "../api"
+import React, { useEffect, useState } from "react";
+import Navbar from "../components/Navbar";
+import { useNavigate } from "react-router-dom";
+import Modal from "../components/Modal";
+import CreateEventModal from "../components/CreateEvent";
+import Event, { EventData } from "../components/Event";
+import { useUser } from "../contexts/UserContext";
+import { api } from "../api";
 
 interface Mentee {
-  _id: string
-  firstName: string
-  lastName: string
+  _id: string;
+  firstName: string;
+  lastName: string;
 }
 
 interface MenteeInformationElements {
-  id: number
-  menteeName: string
+  id: number;
+  menteeName: string;
 }
 
 interface CourseInformationElements {
-  id: number
-  courseName: string
+  id: number;
+  courseName: string;
 }
 
 const MentorDashboard = () => {
-  const navigate = useNavigate()
-  const [mentees, setMentees] = useState<Mentee[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [activeTab, setActiveTab] = useState("My Mentees")
-  const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null)
-  const [createEventModal, setCreateEventModal] = useState(false)
-  const [events, setEvents] = useState<EventData[]>([])
-  const { user } = useUser()
-  const userId = user?._id
+  const navigate = useNavigate();
+  const [mentees, setMentees] = useState<Mentee[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState("My Mentees");
+  const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
+  const [createEventModal, setCreateEventModal] = useState(false);
+  const [events, setEvents] = useState<EventData[]>([]);
+  const { user } = useUser();
+  const userId = user?._id;
   useEffect(() => {
     if (!user) {
-      return
+      return;
     }
 
     if (!userId || user.role !== "mentor") {
-      setError("Only mentors can view mentees.")
-      setLoading(false)
-      return
+      setError("Only mentors can view mentees.");
+      setLoading(false);
+      return;
     }
-    console.log("userId", userId)
+    console.log("userId", userId);
 
     const fetchUserEvents = async () => {
       try {
@@ -58,63 +58,63 @@ const MentorDashboard = () => {
 
     const fetchMentees = async () => {
       try {
-        const encodedUserId = encodeURIComponent(userId) // ✅ URL-safe encoding
-        const response = await api.get(`/api/mentor/${encodedUserId}/mentees`)
+        const encodedUserId = encodeURIComponent(userId); // ✅ URL-safe encoding
+        const response = await api.get(`/api/mentor/${encodedUserId}/mentees`);
         setMentees(
-          Array.isArray(response.data.mentees) ? response.data.mentees : []
-        )
-        setLoading(false)
+          Array.isArray(response.data.mentees) ? response.data.mentees : [],
+        );
+        setLoading(false);
       } catch (err) {
-        setError("Unable to fetch mentees.")
-        setLoading(false)
+        setError("Unable to fetch mentees.");
+        setLoading(false);
       }
-    }
+    };
 
-    fetchMentees()
-    fetchUserEvents()
-  }, [user, userId])
+    fetchMentees();
+    fetchUserEvents();
+  }, [user, userId]);
 
   const eventsByMonth: { [key: string]: EventData[] } = events
     .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) // Sort events chronologically
     .reduce(
       (acc, event) => {
-        const eventDate = new Date(event.date)
-        const month = eventDate.toLocaleString("default", { month: "long" })
+        const eventDate = new Date(event.date);
+        const month = eventDate.toLocaleString("default", { month: "long" });
 
         if (!acc[month]) {
-          acc[month] = []
+          acc[month] = [];
         }
         acc[month].push({
           ...event,
           formattedDate: eventDate.toDateString(),
-        })
+        });
 
-        return acc
+        return acc;
       },
-      {} as { [key: string]: EventData[] }
-    )
+      {} as { [key: string]: EventData[] },
+    );
 
   const menteeGridData = Array.isArray(mentees) // Parse mentee data
     ? mentees.map((mentee) => ({
         id: mentee._id,
         menteeName: `${mentee.firstName} ${mentee.lastName}`,
       }))
-    : [] // Initialize empty array
+    : []; // Initialize empty array
 
   const courseGridData: CourseInformationElements[] = [
     {
       id: 1,
       courseName: "Resume",
     },
-  ]
+  ];
 
   const handleClick = (menteeId: string) => {
-    navigate("/mentor/mentee-information", { state: { menteeId } })
-  }
+    navigate("/mentor/mentee-information", { state: { menteeId } });
+  };
 
   const handleClickWorkshop = (id: number) => {
-    navigate("/mentor/workshop-information", { state: { workshopId: id } })
-  }
+    navigate("/mentor/workshop-information", { state: { workshopId: id } });
+  };
 
   const handleCreateEvent = async (eventData: {
     name: string;
@@ -136,10 +136,9 @@ const MentorDashboard = () => {
     }
   };
 
-
   const handleEventClick = (event: EventData) => {
-    setSelectedEvent(event)
-  }
+    setSelectedEvent(event);
+  };
 
   return (
     <>
@@ -273,7 +272,7 @@ const MentorDashboard = () => {
             <div
               className="Button Button-color--blue-1000"
               onClick={() => {
-                setCreateEventModal(true)
+                setCreateEventModal(true);
               }}
             >
               Add New Event
@@ -282,7 +281,7 @@ const MentorDashboard = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default MentorDashboard
+export default MentorDashboard;

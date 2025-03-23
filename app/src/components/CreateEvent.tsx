@@ -14,7 +14,6 @@ interface CreateEventFormValues {
   roles: string[];
 }
 
-
 // Initial form values
 const initialValues: CreateEventFormValues = {
   name: "",
@@ -25,7 +24,6 @@ const initialValues: CreateEventFormValues = {
   invitationLink: "",
   roles: [],
 };
-
 
 // Yup validation schema
 const validationSchema = yup.object().shape({
@@ -61,7 +59,6 @@ interface CreateEventModalProps {
     calendarLink?: string;
     roles: string[]; // replaced userIds
   }) => void;
-
 }
 
 const CreateEventModal: React.FC<CreateEventModalProps> = ({
@@ -114,111 +111,108 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
           onSubmit={handleSubmit}
         >
           {({ isSubmitting, errors, touched }) => (
-              <Form>
-
-
-                <div className="Form-group">
-                  <label>Audience</label>
-                  <div role="group" aria-labelledby="checkbox-group">
-                    <label>
-                      <Field type="checkbox" name="roles" value="all"/>
-                      All Users
-                    </label>
-                    <label>
-                      <Field type="checkbox" name="roles" value="mentor"/>
-                      Mentors
-                    </label>
-                    <label>
-                      <Field type="checkbox" name="roles" value="mentee"/>
-                      Mentees
-                    </label>
-                    <label>
-                      <Field type="checkbox" name="roles" value="staff"/>
-                      Staff
-                    </label>
-                    <label>
-                      <Field type="checkbox" name="roles" value="board"/>
-                      Board
-                    </label>
-                  </div>
+            <Form>
+              <div className="Form-group">
+                <label>Audience</label>
+                <div role="group" aria-labelledby="checkbox-group">
+                  <label>
+                    <Field type="checkbox" name="roles" value="all" />
+                    All Users
+                  </label>
+                  <label>
+                    <Field type="checkbox" name="roles" value="mentor" />
+                    Mentors
+                  </label>
+                  <label>
+                    <Field type="checkbox" name="roles" value="mentee" />
+                    Mentees
+                  </label>
+                  <label>
+                    <Field type="checkbox" name="roles" value="staff" />
+                    Staff
+                  </label>
+                  <label>
+                    <Field type="checkbox" name="roles" value="board" />
+                    Board
+                  </label>
                 </div>
+              </div>
 
+              <div className="Form-group">
+                <label htmlFor="name">Event Name</label>
+                <Field
+                  type="text"
+                  name="name"
+                  className="Form-input-box"
+                  placeholder="Enter event name"
+                />
+                {errors.name && touched.name && (
+                  <div className="Form-error">{errors.name}</div>
+                )}
+              </div>
 
-                <div className="Form-group">
-                  <label htmlFor="name">Event Name</label>
-                  <Field
-                      type="text"
-                      name="name"
-                      className="Form-input-box"
-                      placeholder="Enter event name"
-                  />
-                  {errors.name && touched.name && (
-                      <div className="Form-error">{errors.name}</div>
-                  )}
-                </div>
+              <div className="Form-group">
+                <label htmlFor="description">Description</label>
+                <Field
+                  type="text"
+                  name="description"
+                  className="Form-input-box"
+                  placeholder="Enter event description"
+                />
+                {errors.description && touched.description && (
+                  <div className="Form-error">{errors.description}</div>
+                )}
+              </div>
 
-                <div className="Form-group">
-                  <label htmlFor="description">Description</label>
-                  <Field
-                      type="text"
-                      name="description"
-                      className="Form-input-box"
-                      placeholder="Enter event description"
-                  />
-                  {errors.description && touched.description && (
-                      <div className="Form-error">{errors.description}</div>
-                  )}
-                </div>
+              <div className="Form-group">
+                <label htmlFor="date">Date</label>
+                <Field type="date" name="date" className="Form-input-box" />
+                {errors.date && touched.date && (
+                  <div className="Form-error">{errors.date}</div>
+                )}
+              </div>
 
-                <div className="Form-group">
-                  <label htmlFor="date">Date</label>
-                  <Field type="date" name="date" className="Form-input-box"/>
-                  {errors.date && touched.date && (
-                      <div className="Form-error">{errors.date}</div>
-                  )}
-                </div>
+              <div className="Form-group">
+                <label htmlFor="startTime">Start Time</label>
+                <Field
+                  type="time"
+                  name="startTime"
+                  className="Form-input-box"
+                />
+                {errors.startTime && touched.startTime && (
+                  <div className="Form-error">{errors.startTime}</div>
+                )}
+              </div>
 
-                <div className="Form-group">
-                  <label htmlFor="startTime">Start Time</label>
-                  <Field
-                      type="time"
-                      name="startTime"
-                      className="Form-input-box"
-                  />
-                  {errors.startTime && touched.startTime && (
-                      <div className="Form-error">{errors.startTime}</div>
-                  )}
-                </div>
+              <div className="Form-group">
+                <label htmlFor="endTime">End Time</label>
+                <Field type="time" name="endTime" className="Form-input-box" />
+                {errors.endTime && touched.endTime && (
+                  <div className="Form-error">{errors.endTime}</div>
+                )}
+              </div>
 
-                <div className="Form-group">
-                  <label htmlFor="endTime">End Time</label>
-                  <Field type="time" name="endTime" className="Form-input-box"/>
-                  {errors.endTime && touched.endTime && (
-                      <div className="Form-error">{errors.endTime}</div>
-                  )}
-                </div>
+              <div className="Form-group">
+                <label htmlFor="invitationLink">Invitation Link</label>
+                <Field
+                  type="text"
+                  name="invitationLink"
+                  className="Form-input-box"
+                  placeholder="https://..."
+                />
+                {errors.invitationLink && touched.invitationLink && (
+                  <div className="Form-error">{errors.invitationLink}</div>
+                )}
+              </div>
 
-                <div className="Form-group">
-                  <label htmlFor="invitationLink">Invitation Link</label>
-                  <Field
-                      type="text"
-                      name="invitationLink"
-                      className="Form-input-box"
-                      placeholder="https://..."
-                  />
-                  {errors.invitationLink && touched.invitationLink && (
-                      <div className="Form-error">{errors.invitationLink}</div>
-                  )}
-                </div>
-
-                <button
-                    type="submit"
-                    className="Button Button-color--blue-1000 Width--100 Margin-top--10"
-                    disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Creating..." : "Create Event"}
-                </button>
-              </Form>
+              <button
+                type="submit"
+                className="Button Button-color--blue-1000 Width--100 Margin-top--10"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? "Creating..." : "Create Event"}
+              </button>
+            </Form>
           )}
         </Formik>
       }

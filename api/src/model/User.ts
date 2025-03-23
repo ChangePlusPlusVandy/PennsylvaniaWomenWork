@@ -1,4 +1,4 @@
-import mongoose from "mongoose"
+import mongoose from "mongoose";
 
 // User schema definition
 const userSchema = new mongoose.Schema({
@@ -9,8 +9,8 @@ const userSchema = new mongoose.Schema({
   firstName: String,
   lastName: String,
   mentor_id: String,
-})
+});
 
-const User = mongoose.model("User", userSchema)
+const User = mongoose.model("User", userSchema);
 
-export default User
+export default User;

@@ -5,7 +5,14 @@ import mongoose from "mongoose";
 
 export const createEvent = async (req: Request, res: Response) => {
   try {
-    const { name, description, date, calendarLink, roles = [], userIds = [] } = req.body;
+    const {
+      name,
+      description,
+      date,
+      calendarLink,
+      roles = [],
+      userIds = [],
+    } = req.body;
 
     let targetUsers: string[] = [];
 
@@ -31,7 +38,9 @@ export const createEvent = async (req: Request, res: Response) => {
 
     const savedEvent = await newEvent.save();
 
-    res.status(201).json({ message: "Event created successfully", event: savedEvent });
+    res
+      .status(201)
+      .json({ message: "Event created successfully", event: savedEvent });
   } catch (error) {
     console.error("Error creating event:", error);
     res.status(500).json({ message: "Error creating event", error });
