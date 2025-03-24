@@ -27,8 +27,11 @@ const Navbar = (): ReactElement => {
   }
 
   const navItems = [
-    { path: "/mentor", label: "Home", roles: [...tier1Roles, ...tier2Roles] },
-    { path: "/mentee", label: "Home", roles: [...tier3Roles] },
+    {
+      path: getHomePath(),
+      label: "Home",
+      roles: ["mentor", "mentee", "staff", "board"], // All roles
+    },
     {
       path: "/create-workshop",
       label: "Create Workshop",
@@ -45,29 +48,11 @@ const Navbar = (): ReactElement => {
       roles: [...tier1Roles],
     },
     {
-      path: "/profile",
-      label: "Profile",
-      roles: [...tier1Roles, ...tier2Roles, ...tier3Roles],
+      path: "/create-event",
+      label: "Create Event",
+      roles: [...tier1Roles], // Only board + staff
     },
   ]
-
-  const filteredNavItems = navItems.filter((item) => {
-    if (!user) return false
-
-    // Special case: only show the correct Home tab
-    if (item.label === "Home") {
-      if (item.path === "/mentor") {
-        return user.role === "mentor" || tier1Roles.includes(user.role)
-      }
-      if (item.path === "/mentee") {
-        return user.role === "mentee"
-      }
-      return false
-    }
-
-    // For all other tabs, use standard RBAC
-    return item.roles.includes(user.role)
-  })
 
   return (
     <div className="Navbar">
