@@ -1,37 +1,34 @@
-import React, { type ReactElement } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useUser } from "../contexts/UserContext";
-import { tier1Roles, tier2Roles, tier3Roles } from "../utils/roles";
+import React, { type ReactElement } from "react"
+import { useNavigate, useLocation } from "react-router-dom"
+import { useAuth0 } from "@auth0/auth0-react"
+import { useUser } from "../contexts/UserContext"
+import { tier1Roles, tier2Roles, tier3Roles } from "../utils/roles"
 
 const Navbar = (): ReactElement => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const { isAuthenticated, logout } = useAuth0();
-  const { user } = useUser();
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { isAuthenticated, logout } = useAuth0()
+  const { user } = useUser()
 
   // Determine correct dashboard path for "Home"
   const getHomePath = () => {
-    if (!user) return "/home";
+    if (!user) return "/home"
     switch (user.role) {
       case "mentor":
-        return "/mentor";
+        return "/mentor"
       case "mentee":
-        return "/mentee";
+        return "/mentee"
       case "staff":
       case "board":
-        return "/home"; // StaffBoardDashboard is mapped to /home
+        return "/home" // StaffBoardDashboard is mapped to /home
       default:
-        return "/home";
+        return "/home"
     }
-  };
+  }
 
   const navItems = [
-    {
-      path: getHomePath(),
-      label: "Home",
-      roles: ["mentor", "mentee", "staff", "board"], // All roles
-    },
+    { path: "/mentor", label: "Home", roles: [...tier1Roles, ...tier2Roles] },
+    { path: "/mentee", label: "Home", roles: [...tier3Roles] },
     {
       path: "/create-workshop",
       label: "Create Workshop",
@@ -43,21 +40,34 @@ const Navbar = (): ReactElement => {
       roles: [...tier1Roles, ...tier2Roles],
     },
     {
-      path: "/profile",
-      label: "Profile",
-      roles: [...tier1Roles, ...tier2Roles, ...tier3Roles],
-    },
-    {
       path: "/invite",
       label: "Invite Mentee",
       roles: [...tier1Roles],
     },
     {
-      path: "/create-event",
-      label: "Create Event",
-      roles: [...tier1Roles], // Only board + staff
+      path: "/profile",
+      label: "Profile",
+      roles: [...tier1Roles, ...tier2Roles, ...tier3Roles],
     },
-  ];
+  ]
+
+  const filteredNavItems = navItems.filter((item) => {
+    if (!user) return false
+
+    // Special case: only show the correct Home tab
+    if (item.label === "Home") {
+      if (item.path === "/mentor") {
+        return user.role === "mentor" || tier1Roles.includes(user.role)
+      }
+      if (item.path === "/mentee") {
+        return user.role === "mentee"
+      }
+      return false
+    }
+
+    // For all other tabs, use standard RBAC
+    return item.roles.includes(user.role)
+  })
 
   return (
     <div className="Navbar">
@@ -103,7 +113,7 @@ const Navbar = (): ReactElement => {
             <div
               className="Button Button-color--teal-1000"
               onClick={() => {
-                logout();
+                logout()
               }}
             >
               Log Out
@@ -112,7 +122,7 @@ const Navbar = (): ReactElement => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default Navbar;
+export default Navbar

@@ -6,6 +6,7 @@ import { api } from "../api";
 import Modal from "../components/Modal";
 import AsyncSubmit from "../components/AsyncSubmit";
 import { useNavigate } from "react-router-dom";
+import { url } from "inspector";
 
 const initialValues = {
   name: "",
@@ -28,7 +29,7 @@ const CreateWorkshop = () => {
   const [success, setSuccess] = useState(false);
   const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
   const [fileDetails, setFileDetails] = useState<
-    { title: string; desc: string; s3id: string }[]
+    { title: string; desc: string; url: string; s3id: string; file: any }[]
   >([]);
 
   const navigate = useNavigate();
@@ -39,24 +40,24 @@ const CreateWorkshop = () => {
   ) => {
     setSubmitting(true);
     try {
-      await Promise.all(
-        selectedFiles.map(async (fileData) => {
-          // Get pre-signed URL for the file
-          console.log("File data:", fileData.file.name, fileData.file.type);
-          const response = await api.get(
-            `/api/workshop/generate-presigned-url/${encodeURIComponent(fileData.file.name)}`,
-          );
+      // await Promise.all(
+      //   selectedFiles.map(async (fileData) => {
+      //     // Get pre-signed URL for the file
+      //     console.log("File data:", fileData.file.name, fileData.file.type);
+      //     const response = await api.get(
+      //       `/api/workshop/generate-presigned-url/${encodeURIComponent(fileData.file.name)}`,
+      //     );
 
-          const { url, objectKey } = response.data;
+      //     const { url, objectKey } = response.data;
 
-          const uploadResponse = await fetch(url, {
-            method: "PUT",
-            body: fileData.file,
-            headers: { "Content-Type": fileData.file.type },
-          });
-          console.log("Upload response:", uploadResponse);
-        }),
-      );
+      //     const uploadResponse = await fetch(url, {
+      //       method: "PUT",
+      //       body: fileData.file,
+      //       headers: { "Content-Type": fileData.file.type },
+      //     });
+      //     console.log("Upload response:", uploadResponse);
+      //   }),
+      // );
       // Create the workshop:
       const payload = {
         name: values.name,
@@ -67,26 +68,34 @@ const CreateWorkshop = () => {
         "/api/workshop/create-workshop",
         payload,
       );
-
+      console.log("Workshop created:", workshop);
       // Add associated files (with placeholder s3id for now)
       if (fileDetails.length > 0) {
         for (const file of fileDetails) {
+
+          const uploadResponse = await fetch(file.url, {
+            method: "PUT",
+            body: file.file,
+            headers: { "Content-Type": file.file.type },
+          });
+          console.log("Upload response:", uploadResponse);
+          console.log("workshop id", workshop._id);
           await api.post("/api/resource/create-resource", {
             name: file.title,
             description: file.desc,
             s3id: file.s3id, // Placeholder
-            workshopIDs: [workshop._id], // Link resource to this workshop
+            workshopIDs: [workshop.workshop._id], // Link resource to this workshop
           });
         }
       }
-      alert("Workshop created successfully!");
+      //alert("Workshop created successfully!");
       resetForm();
       setFileDetails([]); // Clear file details
       setSelectedFiles([]);
       setFileAdded(false);
       // close modal
       setIsModal(false);
-      navigate("/workshops");
+      //navigate("/workshops");
     } catch (error) {
       console.error("Error creating workshop:", error);
       alert("Failed to create workshop. Please try again.");
@@ -126,11 +135,19 @@ const CreateWorkshop = () => {
         { title, description: desc, file },
       ]);
 
+      const response = await api.get(
+        `/api/workshop/generate-presigned-url/${encodeURIComponent(file.name)}`,
+      );
+
+      const { url, objectKey } = response.data;
+
       // Add file details with a placeholder s3id to the list
       const newFile = {
         title: title,
         desc: desc,
-        s3id: "placeholder-s3-id", // TODO: change
+        url: url, // TODO: change
+        s3id: objectKey, // TODO: change
+        file: file,
       };
       setFileDetails((prevDetails) => [...prevDetails, newFile]);
       setFileAdded(true);

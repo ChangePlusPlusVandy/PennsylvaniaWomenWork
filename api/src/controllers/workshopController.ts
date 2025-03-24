@@ -26,7 +26,7 @@ export const generatePresignedUrl = async (req: Request, res: Response) => {
   const params = {
     Bucket: bucketName,
     Key: objectKey,
-    Expires: 60 * 5, // URL expires in 5 minutes
+    Expires: 3600,
   };
 
   try {
@@ -91,6 +91,21 @@ export const getWorkshopsByUserId = async (req: Request, res: Response) => {
       return res
         .status(404)
         .json({ message: "No workshops found for this user" });
+    }
+
+    res.status(200).json(workshops);
+  } catch (error) {
+    res.status(500).json({ message: "Error retrieving workshops", error });
+  }
+};
+
+// get all workshops
+export const getAllWorkshops = async (req: Request, res: Response) => {
+  try {
+    const workshops = await Workshop.find();
+
+    if (workshops.length === 0) {
+      return res.status(404).json({ message: "No workshops found" });
     }
 
     res.status(200).json(workshops);

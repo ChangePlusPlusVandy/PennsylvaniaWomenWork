@@ -11,7 +11,7 @@ const router = express.Router();
 router.post("/create-resource", createResource);
 
 // Route to get resources by workshop ID -- not wired
-router.get("/workshop/:workshopId/resources", getResourcesByWorkshopId);
+router.get("/get-resource-by-workshop/:workshopId", getResourcesByWorkshopId);
 
 router.get("/getURL/:objectId", generateRetrievalURL);
 
