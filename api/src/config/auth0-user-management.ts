@@ -66,7 +66,7 @@ const getToken = async (): Promise<Auth0TokenResponse> => {
  */
 const getManagementClient = async (
   renewToken: boolean = false,
-  token: string = AUTH0_TOKEN!
+  token: string = AUTH0_TOKEN!,
 ) => {
   if (renewToken) {
     const newToken = await getToken();
@@ -111,7 +111,7 @@ export const createUserLink = async (userId: string) => {
  */
 export const createAuthUser = async (
   email: string,
-  managementClient: ManagementClient = Auth0ManagementClient
+  managementClient: ManagementClient = Auth0ManagementClient,
 ): Promise<{ [key: string]: any }> => {
   const dummy_password = generatePassword.generate({
     length: 15,

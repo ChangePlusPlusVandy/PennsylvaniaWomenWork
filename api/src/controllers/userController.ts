@@ -70,7 +70,7 @@ export const sendEmail = async (req: Request, res: Response) => {
 
     if (!SENDGRID_API_KEY || !SEND_GRID_TEST_EMAIL || !PUBLIC_APP_URL) {
       throw new Error(
-        "SendGrid API key, test email, public app url is missing"
+        "SendGrid API key, test email, public app url is missing",
       );
     }
 
@@ -205,7 +205,7 @@ export const updateUser = async (req: Request, res: Response) => {
     const updatedUser = await User.findByIdAndUpdate(
       userId,
       { $set: updateData },
-      { new: true, runValidators: true } // Return updated document and validate
+      { new: true, runValidators: true }, // Return updated document and validate
     );
 
     if (!updatedUser) {
