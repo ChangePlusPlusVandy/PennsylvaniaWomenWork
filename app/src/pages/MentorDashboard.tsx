@@ -9,21 +9,24 @@ import { api } from "../api"
 
 interface Mentee {
   _id: string
-  firstName: string
-  lastName: string
+  first_name: string
+  last_name: string
   email: string
 }
 
 interface CourseInformationElements {
-  id: number
-  courseName: string
+  _id: string
+  name: string
   description: string
+  s3id: string
+  createdAt: string
+  mentor: string
+  mentee: string
 }
 
 const MentorDashboard = () => {
   const navigate = useNavigate()
   const [mentees, setMentees] = useState<Mentee[]>([])
-  const [courses, setCourses] = useState<CourseInformationElements[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("My Mentees")
@@ -31,6 +34,7 @@ const MentorDashboard = () => {
   const [createEventModal, setCreateEventModal] = useState(false)
   const [events, setEvents] = useState<EventData[]>([])
   const { user } = useUser()
+  const [workshops, setWorkshops] = useState<CourseInformationElements[]>([])
   const userId = user?._id
 
   useEffect(() => {
@@ -38,12 +42,44 @@ const MentorDashboard = () => {
       return
     }
 
-    if (!userId || user.role !== "mentor") {
+    if (
+      !userId ||
+      (user.role !== "mentor" && user.role !== "staff" && user.role !== "board")
+    ) {
       setError("Only mentors can view mentees.")
       setLoading(false)
       return
     }
+    console.log("userId", userId)
 
+    const fetchMentees = async () => {
+      try {
+        const endpoint =
+          user.role === "staff"
+            ? "/api/mentee/all-mentees"
+            : `/api/mentor/${user._id}/mentees`
+
+        const response = await api.get(endpoint)
+
+        const menteeData =
+          user.role === "staff"
+            ? response.data // getAllMentees returns array directly
+            : response.data.mentees // getMenteesForMentor returns {mentees: [...]}
+
+        setMentees(Array.isArray(menteeData) ? menteeData : [])
+        console.log("menteeData", menteeData)
+        setLoading(false)
+      } catch (err) {
+        setError("Unable to fetch mentees.")
+        setLoading(false)
+      }
+    }
+
+    fetchMentees()
+  }, [user, userId])
+
+  // use effect for fetch user events
+  useEffect(() => {
     const fetchUserEvents = async () => {
       try {
         const response = await api.get(`/api/event/${userId}`)
@@ -53,38 +89,21 @@ const MentorDashboard = () => {
         setError("Failed to load events.")
       }
     }
-
-    const fetchMentees = async () => {
-      try {
-        const endpoint =
-          user.role === "staff"
-            ? "/api/mentee/all-mentees"
-            : `/api/mentor/${user._id}/mentees`
-        const response = await api.get(endpoint)
-        const menteeData =
-          user.role === "staff" ? response.data : response.data.mentees
-        setMentees(Array.isArray(menteeData) ? menteeData : [])
-        setLoading(false)
-      } catch (err) {
-        setError("Unable to fetch mentees.")
-        setLoading(false)
-      }
-    }
-
-    const fetchCourses = async () => {
-      try {
-        // Assume an endpoint exists for fetching courses for this mentor
-        const response = await api.get(`/api/mentor/${user._id}/courses`)
-        setCourses(response.data.courses || [])
-      } catch (err) {
-        console.error("Error fetching courses:", err)
-      }
-    }
-
-    fetchMentees()
     fetchUserEvents()
-    fetchCourses()
-  }, [user, userId])
+  })
+
+  // call endpoint to get all workshops
+  useEffect(() => {
+    const fetchWorkshops = async () => {
+      try {
+        const response = await api.get(`/api/workshop/get-workshops`)
+        setWorkshops(response.data)
+      } catch (err) {
+        setError("Unable to fetch workshops.")
+      }
+    }
+    fetchWorkshops()
+  }, [])
 
   // Group events by month
   const eventsByMonth: { [key: string]: EventData[] } = events
@@ -137,6 +156,12 @@ const MentorDashboard = () => {
     setSelectedEvent(event)
   }
 
+  useEffect(() => {
+    if (user?.role === "board") {
+      setActiveTab("Courses")
+    }
+  }, [user?.role])
+
   return (
     <>
       <Navbar />
@@ -174,119 +199,112 @@ const MentorDashboard = () => {
         />
       )}
 
-      <div className="row g-3 Margin--20">
-        {/* Left Column: Tabs & Content */}
-        <div className="col-lg-8">
-          <div className="Block p-3">
-            {/* Tabs Header */}
-            <div className="Flex-row Margin-bottom--30">
-              {["My Mentees", "Courses"].map((tab) => (
-                <div
-                  key={tab}
-                  onClick={() => setActiveTab(tab)}
-                  className={
-                    "Cursor--pointer Padding-bottom--8 Margin-right--32 Text-fontSize--20 " +
-                    (activeTab === tab
-                      ? "Border-bottom--blue Text-color--gray-1000"
-                      : "Text-color--gray-600")
-                  }
-                  style={{
-                    cursor: "pointer",
-                    paddingBottom: "8px",
-                    borderBottom:
-                      activeTab === tab
-                        ? "2px solid #0096C0"
-                        : "2px solid transparent",
-                    marginRight: "48px",
-                  }}
-                >
-                  {tab}
+      <div className="container py-4">
+        <div className="row g-3">
+          <div className="col-lg-8">
+            <div className="Block">
+              <div className="Block-header">
+                <div className="Flex-row">
+                  {user?.role === "board" ? (
+                    // Board members only see Courses tab
+                    <div
+                      onClick={() => setActiveTab("Courses")}
+                      className={`tab ${activeTab === "Courses" ? "active" : ""}`}
+                    >
+                      Courses
+                    </div>
+                  ) : (
+                    // Other roles see both tabs
+                    ["My Mentees", "Courses"].map((tab) => (
+                      <div
+                        key={tab}
+                        onClick={() => setActiveTab(tab)}
+                        className={`tab ${activeTab === tab ? "active" : ""}`}
+                      >
+                        {tab === "My Mentees" && user?.role === "staff"
+                          ? "All Mentees"
+                          : tab}
+                      </div>
+                    ))
+                  )}
                 </div>
-              ))}
-            </div>
+              </div>
+              <div className="Block-subtitle" />
 
-            {/* Tab Content */}
-            {activeTab === "My Mentees" && (
-              <div>
-                {loading ? (
-                  <p>Loading mentees...</p>
-                ) : error ? (
-                  <p style={{ color: "red" }}>{error}</p>
-                ) : mentees.length > 0 ? (
-                  <div className="row gx-3 gy-3">
-                    {mentees.map((mentee) => (
-                      <div className="col-lg-4" key={mentee._id}>
-                        <div
-                          className="Mentor--card"
-                          onClick={() => handleClick(mentee._id)}
-                        >
-                          <div className="Mentor--card-color Background-color--teal-1000" />
-                          <div className="Padding--10">
-                            <div className="Mentor--card-name">
-                              {mentee.firstName} {mentee.lastName}
-                            </div>
-                            <div className="Mentor--card-description">
-                              {mentee.email}
+              {activeTab === "My Mentees" && (
+                <div>
+                  {loading ? (
+                    <p>Loading mentees...</p>
+                  ) : error ? (
+                    <p style={{ color: "red" }}>{error}</p>
+                  ) : mentees.length > 0 ? (
+                    <div className="row gx-3 gy-3">
+                      {mentees.map((mentee) => (
+                        <div className="col-lg-4" key={mentee._id}>
+                          <div
+                            className="Mentor--card"
+                            onClick={() => handleClick(mentee._id)}
+                          >
+                            <div className="Mentor--card-color Background-color--teal-1000" />
+                            <div className="Padding--10">
+                              <div className="Mentor--card-name">
+                                {mentee.first_name} {mentee.last_name}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p>No mentees found.</p>
-                )}
-              </div>
-            )}
-            {activeTab === "Courses" && (
-              <div className="row gx-3 gy-3">
-                {courses.length > 0 ? (
-                  courses.map((item) => (
-                    <div className="col-lg-4" key={item.id}>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>No mentees found.</p>
+                  )}
+                </div>
+              )}
+
+              {activeTab === "Courses" && (
+                <div className="row gx-3 gy-3">
+                  {workshops.map((item) => (
+                    <div className="col-lg-4" key={item._id}>
                       <div
                         className="Mentor--card"
-                        onClick={() => handleClickWorkshop(item.id)}
+                        onClick={() => handleClickWorkshop(item._id)}
                       >
                         <div className="Mentor--card-color Background-color--teal-1000" />
                         <div className="Padding--10">
-                          <div className="Mentor--card-name">
-                            {item.courseName}
-                          </div>
+                          <div className="Mentor--card-name">{item.name}</div>
                           <div className="Mentor--card-description">
                             {item.description}
                           </div>
                         </div>
                       </div>
                     </div>
-                  ))
-                ) : (
-                  <p>No courses found.</p>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Right Column: Upcoming Events */}
-        <div className="col-lg-4">
-          <div className="Block p-3">
-            <div className="Block-header">Upcoming Events</div>
-            <div className="Block-subtitle">
-              Scheduled meetings and workshops
+                  ))}
+                </div>
+              )}
             </div>
-            {Object.entries(eventsByMonth).map(([month, monthEvents]) => (
-              <Event
-                key={month}
-                month={month}
-                events={monthEvents}
-                onEventClick={handleEventClick}
-              />
-            ))}
-            <div
-              className="Button Button-color--blue-1000"
-              onClick={() => setCreateEventModal(true)}
-            >
-              Add New Event
+          </div>
+
+          {/* Right Column: Upcoming Events */}
+          <div className="col-lg-4">
+            <div className="Block p-3">
+              <div className="Block-header">Upcoming Events</div>
+              <div className="Block-subtitle">
+                Scheduled meetings and workshops
+              </div>
+              {Object.entries(eventsByMonth).map(([month, monthEvents]) => (
+                <Event
+                  key={month}
+                  month={month}
+                  events={monthEvents}
+                  onEventClick={handleEventClick}
+                />
+              ))}
+              <div
+                className="Button Button-color--blue-1000"
+                onClick={() => setCreateEventModal(true)}
+              >
+                Add New Event
+              </div>
             </div>
           </div>
         </div>

@@ -1,12 +1,12 @@
-import express from "express";
-import { createEvent, getEventsByUser } from "../controllers/eventController";
+import express from "express"
+import { createEvent, getEventsByUser } from "../controllers/eventController"
 
-const router = express.Router();
+const router = express.Router()
 
 // Route to create a new event
-router.post("/", createEvent);
+router.post("/", createEvent)
 
 // Route to get all events for a user
-router.get("/:userId", getEventsByUser);
+router.get("/:userId", getEventsByUser)
 
-export default router;
+export default router
