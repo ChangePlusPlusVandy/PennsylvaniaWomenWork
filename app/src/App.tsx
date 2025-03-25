@@ -1,33 +1,34 @@
-import React, { type ReactElement } from "react";
-import { Routes, Route } from "react-router-dom";
-import MentorDashboard from "./pages/MentorDashboard";
-import MenteeDashboard from "./pages/MenteeDashboard";
-import StaffBoardDashboard from "./pages/StaffBoardDashboard";
-import ConfirmLogout from "./pages/ConfirmLogout";
-import CreateWorkshop from "./pages/CreateWorkshop";
-import CreateMeeting from "./pages/CreateMeeting";
-import MenteeInformation from "./pages/MenteeInformation";
-import WorkshopInformation from "./pages/WorkshopInformation";
-import MenteeCourseInformation from "./pages/MenteeCourseInformation";
-import AuthCallback from "./pages/auth-callback";
-import LoginRedirect from "./pages/LoginRedirect";
-import Logout from "./pages/Logout";
-import Profile from "./pages/Profile";
-import SampleMenteeInvite from "./pages/MenteeInvite";
-import { useAuth0 } from "@auth0/auth0-react";
-import ProtectedRoute from "./components/ProtectedRoute";
-import { tier1Roles, tier2Roles, tier3Roles } from "./utils/roles";
-import { useUser } from "./contexts/UserContext";
+import React, { type ReactElement } from "react"
+import { Routes, Route } from "react-router-dom"
+import MentorDashboard from "./pages/MentorDashboard"
+import MenteeDashboard from "./pages/MenteeDashboard"
+import ConfirmLogout from "./pages/ConfirmLogout"
+import CreateWorkshop from "./pages/CreateWorkshop"
+import CreateMeeting from "./pages/CreateMeeting"
+import MenteeInformation from "./pages/MenteeInformation"
+import WorkshopInformation from "./pages/WorkshopInformation"
+import MenteeCourseInformation from "./pages/MenteeCourseInformation"
+import AuthCallback from "./pages/auth-callback"
+import LoginRedirect from "./pages/LoginRedirect"
+import Logout from "./pages/Logout"
+import Profile from "./pages/Profile"
+import SampleMenteeInvite from "./pages/MenteeInvite"
+import { useAuth0 } from "@auth0/auth0-react"
+import ProtectedRoute from "./components/ProtectedRoute"
+import { tier1Roles, tier2Roles, tier3Roles } from "./utils/roles"
+import { useUser } from "./contexts/UserContext"
 
 function App(): ReactElement {
-  const { isAuthenticated } = useAuth0();
-  const { user } = useUser();
+  const { isAuthenticated } = useAuth0()
+  const { user } = useUser()
 
   const renderHomeDashboard = () => {
-    if (!user) return null;
+    if (!user) return null
 
     switch (user.role) {
       case "mentor":
+      case "staff":
+      case "board":
         return (
           <Route
             path="/home"
@@ -38,7 +39,7 @@ function App(): ReactElement {
               />
             }
           />
-        );
+        )
       case "mentee":
         return (
           <Route
@@ -50,24 +51,9 @@ function App(): ReactElement {
               />
             }
           />
-        );
-      case "staff":
-      case "board":
-        return (
-          <Route
-            path="/home"
-            element={
-              <ProtectedRoute
-                element={<StaffBoardDashboard />}
-                allowedRoles={[...tier1Roles]}
-              />
-            }
-          />
-        );
-      default:
-        return null;
+        )
     }
-  };
+  }
 
   return (
     <div className="App">
@@ -175,7 +161,7 @@ function App(): ReactElement {
         )}
       </Routes>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App

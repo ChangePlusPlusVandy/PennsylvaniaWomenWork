@@ -11,6 +11,7 @@ interface Mentee {
   _id: string
   firstName: string
   lastName: string
+  email: string
 }
 
 interface CourseInformationElements {
@@ -223,6 +224,9 @@ const MentorDashboard = () => {
                           <div className="Padding--10">
                             <div className="Mentor--card-name">
                               {mentee.firstName} {mentee.lastName}
+                            </div>
+                            <div className="Mentor--card-description">
+                              {mentee.email}
                             </div>
                           </div>
                         </div>
