@@ -4,6 +4,19 @@
   align-items: center;
   justify-content: center;
 
+  &-initials {
+    width: 150px;
+    height: 150px;
+    border-radius: 50%;
+    background-color: var(--pww-color-blue-1000);
+    color: var(--pww-color-light-1000);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--pww-font-size-50);
+    font-weight: bold;
+  }
+
   &-Block {
     width: 40%;
     margin-top: 56px;
@@ -29,16 +42,19 @@
     margin-bottom: 10px;
     padding: 10px;
     border-bottom: 1px solid var(--pww-color-gray-100);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
 
     &:last-child {
       border-bottom: none;
       margin-bottom: 0;
     }
 
-    strong {
-      color: var(--pww-color-gray-800);
+    &-label {
+      color: var(--pww-color-gray-900);
       margin-right: 10px;
-      font-weight: 1000;
+      font-weight: bold;
     }
   }
 }

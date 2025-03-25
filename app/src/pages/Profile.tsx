@@ -1,23 +1,27 @@
-import React from "react";
-import Navbar from "../components/Navbar";
-import { useUser } from "../contexts/UserContext";
-import { useAuth0 } from "@auth0/auth0-react";
-import { useEffect } from "react";
+import React from "react"
+import Navbar from "../components/Navbar"
+import { useUser } from "../contexts/UserContext"
+import { useAuth0 } from "@auth0/auth0-react"
 
 const Profile = () => {
-  const { user: auth0User, logout } = useAuth0();
-  const { user, error, loading } = useUser();
+  const { user: auth0User, logout } = useAuth0()
+  const { user, error, loading } = useUser()
 
-  // use effect dump user data to console
-  useEffect(() => {
-    console.log("auth0User", auth0User?.sub);
-    console.log("user", user);
-  });
+  // Function to compute initials from first and last name
+  const getInitials = () => {
+    if (!user) return ""
+    const firstInitial = user.first_name
+      ? user.first_name.charAt(0).toUpperCase()
+      : ""
+    const lastInitial = user.last_name
+      ? user.last_name.charAt(0).toUpperCase()
+      : ""
+    return firstInitial + lastInitial
+  }
 
   return (
     <>
       <Navbar />
-
       <div className="Profile">
         {loading ? (
           <p>Loading user info...</p>
@@ -29,48 +33,27 @@ const Profile = () => {
             <div className="Block-subtitle">User Details and Settings</div>
             <div className="Block-content">
               <div className="Profile-avatar">
-                <img
-                  src={auth0User.picture}
-                  alt={`${auth0User.name}'s profile`}
-                  className="Profile-avatar-image"
-                />
+                {/* Display user's initials instead of an image */}
+                <div className="Profile-initials">{getInitials()}</div>
               </div>
               <div className="Profile-field">
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <strong>Username:</strong>
-                  <span>{user.username}</span>
+                <div className="Profile-field-label">Name:</div>
+                <div>
+                  {user.first_name} {user.last_name}
                 </div>
               </div>
               <div className="Profile-field">
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <strong>Name:</strong>
-                  <span>{auth0User.name}</span>
-                </div>
+                <div className="Profile-field-label">Role:</div>
+                <div>{user.role}</div>
               </div>
               <div className="Profile-field">
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <strong>Role:</strong>
-                  <span>{user.role}</span>
-                </div>
-              </div>
-              <div className="Profile-field">
-                <div
-                  style={{ display: "flex", justifyContent: "space-between" }}
-                >
-                  <strong>Email:</strong>
-                  <span>{auth0User.email}</span>
-                </div>
+                <div className="Profile-field-label">Email:</div>
+                <div>{user.email}</div>
               </div>
               <div
                 className="Button Button-color--blue-1000 Margin-top--20"
                 onClick={() => {
-                  logout();
+                  logout()
                 }}
               >
                 Log Out
@@ -82,7 +65,7 @@ const Profile = () => {
         )}
       </div>
     </>
-  );
-};
+  )
+}
 
-export default Profile;
+export default Profile
