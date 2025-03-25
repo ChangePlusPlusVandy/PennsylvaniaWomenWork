@@ -251,3 +251,33 @@ export const getCurrentUserById = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Server error" });
   }
 };
+
+// Get all mentees in the database
+export const getAllMentees = async (req: Request, res: Response) => {
+  try {
+    const mentees = await User.find(
+      { role: "mentee" },
+      "_id first_name last_name username",
+    );
+
+    res.status(200).json(mentees);
+  } catch (error) {
+    console.error("Error fetching mentees:", error);
+    res.status(500).json({ message: "Failed to fetch mentees", error });
+  }
+};
+
+// Get all mentors in the database
+export const getAllMentors = async (req: Request, res: Response) => {
+  try {
+    const mentors = await User.find(
+      { role: "mentor" },
+      "_id first_name last_name username",
+    );
+
+    res.status(200).json(mentors);
+  } catch (error) {
+    console.error("Error fetching mentors:", error);
+    res.status(500).json({ message: "Failed to fetch mentors", error });
+  }
+};

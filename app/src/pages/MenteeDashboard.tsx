@@ -27,26 +27,27 @@ const MenteeDashboard = () => {
       try {
         const [eventsResponse, workshopsResponse] = await Promise.all([
           api.get(`/api/event/${userId}`),
-          api.get(`/api/workshop/user/${userId}`),
+          api.get(`/api/mentee/${userId}/workshops`),
         ]);
 
         setEvents(
           eventsResponse.data.map((event: any) => ({
-            id: event._id,
-            title: event.name,
-            startTime: event.startTime,
-            endTime: event.endTime,
+            name: event.name,
             description: event.description,
             date: event.date,
-            calendarLink: event.calendarLink,
+            userIds: event.users || [],
+            calendarLink: event.calendarLink || "",
           })),
         );
 
         setWorkshops(
-          workshopsResponse.data.map((workshop: any) => ({
-            id: workshop._id,
-            courseName: workshop.name,
-          })),
+          workshopsResponse.data.map((workshop: any) => {
+            console.log("Workshop loaded:", workshop);
+            return {
+              id: workshop._id,
+              courseName: workshop.name,
+            };
+          }),
         );
       } catch (error) {
         console.error("Error fetching data:", error);
@@ -61,13 +62,10 @@ const MenteeDashboard = () => {
   };
 
   const eventsByMonth: { [key: string]: EventData[] } = events
-    .sort(
-      (a, b) =>
-        new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-    ) // Sort events chronologically
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()) // Sort events chronologically
     .reduce(
       (acc, event) => {
-        const eventDate = new Date(event.startTime);
+        const eventDate = new Date(event.date);
         const month = eventDate.toLocaleString("default", { month: "long" });
 
         if (!acc[month]) {
@@ -93,7 +91,7 @@ const MenteeDashboard = () => {
       {selectedEvent && (
         <Modal
           header={selectedEvent.name}
-          subheader={`${new Date(selectedEvent.date).toLocaleString("default", { month: "long" })} ${new Date(selectedEvent.date).getDate()}, ${new Date(selectedEvent.date).getFullYear()} ${new Date(selectedEvent.startTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })} - ${new Date(selectedEvent.endTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}
+          subheader={`${new Date(selectedEvent.date).toLocaleString("default", { month: "long" })} ${new Date(selectedEvent.date).getDate()}, ${new Date(selectedEvent.date).getFullYear()}`}
           body={
             <>
               {selectedEvent.description}

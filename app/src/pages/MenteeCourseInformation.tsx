@@ -31,7 +31,8 @@ const MenteeCourseInformation = () => {
   return (
     <>
       <Navbar />
-        <div className="Block Width--70 Margin-left--80 Margin-right--80 Margin-top--40">
+      <div className="WorkshopInfo">
+        <div className="Block">
           <div className="Block-header">Resume workshop</div>
           <div className="Block-subtitle">
             This course will help you create a professional resume that will
@@ -54,6 +55,7 @@ const MenteeCourseInformation = () => {
             </div>
           </div>
         </div>
+      </div>
     </>
   );
 };

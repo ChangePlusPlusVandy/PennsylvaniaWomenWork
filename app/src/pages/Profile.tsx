@@ -35,22 +35,20 @@ const Profile = () => {
                   className="Profile-avatar-image"
                 />
               </div>
-              {/* <div className="Profile-field">
+              <div className="Profile-field">
                 <div
                   style={{ display: "flex", justifyContent: "space-between" }}
                 >
                   <strong>Username:</strong>
                   <span>{user.username}</span>
                 </div>
-              </div> */}
+              </div>
               <div className="Profile-field">
                 <div
                   style={{ display: "flex", justifyContent: "space-between" }}
                 >
                   <strong>Name:</strong>
-                  <span>
-                    {user.first_name} {user.last_name}
-                  </span>
+                  <span>{auth0User.name}</span>
                 </div>
               </div>
               <div className="Profile-field">

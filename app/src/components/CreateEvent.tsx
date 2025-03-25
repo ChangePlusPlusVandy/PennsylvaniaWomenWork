@@ -11,6 +11,7 @@ interface CreateEventFormValues {
   startTime: string;
   endTime: string;
   invitationLink: string;
+  roles: string[];
 }
 
 // Initial form values
@@ -21,6 +22,7 @@ const initialValues: CreateEventFormValues = {
   startTime: "",
   endTime: "",
   invitationLink: "",
+  roles: [],
 };
 
 // Yup validation schema
@@ -54,10 +56,8 @@ interface CreateEventModalProps {
     name: string;
     description: string;
     date: string;
-    startTime: string;
-    endTime: string;
-    userIds: string[];
     calendarLink?: string;
+    roles: string[]; // replaced userIds
   }) => void;
 }
 
@@ -72,26 +72,15 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
     { setSubmitting, resetForm }: FormikHelpers<CreateEventFormValues>,
   ) => {
     try {
-      const baseDate = new Date(values.date);
-
-      //Parse start time
-      const [startHours, startMinutes] = values.startTime.split(":");
-      const startDateTime = new Date(baseDate);
-      startDateTime.setHours(parseInt(startHours), parseInt(startMinutes));
-
-      // Parse end time
-      const [endHours, endMinutes] = values.endTime.split(":");
-      const endDateTime = new Date(baseDate);
-      endDateTime.setHours(parseInt(endHours), parseInt(endMinutes));
-
       const eventData = {
         name: values.name,
         description: values.description,
-        date: startDateTime.toISOString(),
-        startTime: startDateTime.toISOString(),
-        endTime: endDateTime.toISOString(),
-        userIds: ["64a6b8c5f5c6dca8ef18d1f1"],
+        date: new Date(values.date).toISOString(), // Ensure proper date format
+        startTime: values.startTime,
+        endTime: values.endTime,
+        // userIds: ["64a6b8c5f5c6dca8ef18d1f1"], // ✅ Hardcoded user ID for now
         calendarLink: values.invitationLink,
+        roles: values.roles,
       };
 
       console.log("Submitting Event Data:", eventData); // Debugging
@@ -123,6 +112,32 @@ const CreateEventModal: React.FC<CreateEventModalProps> = ({
         >
           {({ isSubmitting, errors, touched }) => (
             <Form>
+              <div className="Form-group">
+                <label>Audience</label>
+                <div role="group" aria-labelledby="checkbox-group">
+                  <label>
+                    <Field type="checkbox" name="roles" value="all" />
+                    All Users
+                  </label>
+                  <label>
+                    <Field type="checkbox" name="roles" value="mentor" />
+                    Mentors
+                  </label>
+                  <label>
+                    <Field type="checkbox" name="roles" value="mentee" />
+                    Mentees
+                  </label>
+                  <label>
+                    <Field type="checkbox" name="roles" value="staff" />
+                    Staff
+                  </label>
+                  <label>
+                    <Field type="checkbox" name="roles" value="board" />
+                    Board
+                  </label>
+                </div>
+              </div>
+
               <div className="Form-group">
                 <label htmlFor="name">Event Name</label>
                 <Field

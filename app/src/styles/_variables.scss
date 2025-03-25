@@ -30,8 +30,8 @@ $alphas: 25 50 100 150 200 300 400 500 600 700 800 900 1000;
 
 // this is where we define our colors used in the app
 @mixin pww-create-color($name, $baseColor, $alphas) {
-  --pww-color-#{$name}:
-    #{red($baseColor)}, #{green($baseColor)}, #{blue($baseColor)};
+  --pww-color-#{$name}: #{red($baseColor)}, #{green($baseColor)},
+    #{blue($baseColor)};
 
   @each $alpha in $alphas {
     --pww-color-#{$name}-#{$alpha}: #{rgba($baseColor, math.div($alpha, 1000))};
@@ -91,12 +91,10 @@ $weights: 25 50 100 200 300 400 500 600 700 800 900 !default;
 @mixin root-palette($palette) {
   @each $name, $color in $palette {
     --#{$name}: #{red($color)}, #{green($color)}, #{blue($color)};
-    --#{$name}-dark:
-      #{red(saturate($color, 20))}, #{green(saturate($color, 20))},
-      #{blue(saturate($color, 20))};
-    --#{$name}-light:
-      #{red(lighten($color, 20))}, #{green(lighten($color, 20))},
-      #{blue(lighten($color, 20))};
+    --#{$name}-dark: #{red(saturate($color, 20))},
+      #{green(saturate($color, 20))}, #{blue(saturate($color, 20))};
+    --#{$name}-light: #{red(lighten($color, 20))},
+      #{green(lighten($color, 20))}, #{blue(lighten($color, 20))};
   }
 }
 

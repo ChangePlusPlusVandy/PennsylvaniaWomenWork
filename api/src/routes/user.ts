@@ -8,6 +8,8 @@ import {
   getCurrentUser,
   updateUser,
   getCurrentUserById,
+  getAllMentees,
+  getAllMentors,
 } from "../controllers/userController";
 
 const router = express.Router();
@@ -28,5 +30,9 @@ router.get("/current-userid/:auth_id", getCurrentUserById);
 
 // Route to change a user's information
 router.put("/:userId", updateUser);
+
+router.get("/all-mentees", getAllMentees);
+
+router.get("/all-mentors", getAllMentors);
 
 export default router;

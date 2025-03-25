@@ -11,8 +11,8 @@ import { api } from "../api";
 interface User {
   _id: string;
   username: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
   role: string;
 }
 

@@ -15,6 +15,7 @@ export const getMenteesForMentor = async (
     // Find all users where mentor_id matches the given mentorId
     const mentees = await User.find({
       mentor_id: mentorId, // 🔹 Match mentor_id (string) instead of _id
+      role: "mentee",
     });
 
     if (!mentees || mentees.length === 0) {

@@ -1,18 +1,17 @@
-import React, { useState } from "react"
-import { Formik, Form, Field } from "formik"
-import * as Yup from "yup"
-import { toast } from "react-hot-toast"
-import { ReactComponent as SendIcon } from "../assets/send.svg"
-import Navbar from "../components/Navbar"
-import AsyncSubmit from "../components/AsyncSubmit"
-import { api } from "../api"
+import React, { useState } from "react";
+import { Formik, Form, Field } from "formik";
+import * as Yup from "yup";
+import { toast } from "react-hot-toast";
+import { ReactComponent as SendIcon } from "../assets/send.svg";
+import Navbar from "../components/Navbar";
+import AsyncSubmit from "../components/AsyncSubmit";
+import { api } from "../api";
 
 const initialValues = {
   name: "",
   email: "",
   verifyEmail: "",
-  role: "",
-}
+};
 
 const validationSchema = Yup.object().shape({
   name: Yup.string().required("Name is required"),
@@ -22,157 +21,141 @@ const validationSchema = Yup.object().shape({
   verifyEmail: Yup.string()
     .oneOf([Yup.ref("email")], "Emails must match")
     .required("Please verify email"),
-  role: Yup.string().required("Role is required"),
-})
-
-const roles = [
-  { id: "mentee", label: "Mentee" },
-  { id: "mentor", label: "Mentor" },
-  { id: "staff", label: "Staff" },
-  { id: "board", label: "Board" },
-]
+});
 
 const SampleMenteeInvite = () => {
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (
     values: any,
-    { setSubmitting, resetForm }: any
+    { setSubmitting, resetForm }: any,
   ) => {
-    console.log("Submitting email invite", values)
-    setIsLoading(true)
+    console.log("Submitting email invite", values);
+    setIsLoading(true);
     try {
       const response = await api.post("/user/send-email", {
         name: values.name,
         email: values.email,
         role: "mentee",
-      })
+      });
 
       if (response.status === 200) {
         toast.success("Invite sent successfully!", {
           duration: 2000,
           position: "top-center",
-        })
-        resetForm()
+        });
+        resetForm();
       } else {
-        throw new Error("Failed to send invite")
+        throw new Error("Failed to send invite");
       }
     } catch (error) {
-      console.error("Error sending invite:", error)
+      console.error("Error sending invite:", error);
       toast.error("Failed to send invite", {
         duration: 2000,
         position: "top-center",
-      })
+      });
     } finally {
-      setIsLoading(false)
-      setSubmitting(false)
+      setIsLoading(false);
+      setSubmitting(false);
     }
-  }
+  };
 
   return (
     <>
       <Navbar />
-      <div className="FormWidget">
-        <div className="FormWidget-body Block">
-          <div className="Block-header">Send a Network Invite</div>
-          <div className="Block-subtitle">
-            Invite a mentee to join your network
-          </div>
+      <div className="Block Width--70 Margin-right--80 Margin-left--80 Margin-top--40">
+        <div
+          className="Flex-row Margin-bottom--40 Margin-left--40 Margin-right--100 Margin-top--30 Text-color--teal-1000 Text-fontSize--30"
+          style={{
+            borderBottom: "2px solid rgba(84, 84, 84, 0.3)",
+            paddingBottom: "10px",
+          }}
+        >
+          Invite Mentee
+        </div>
+        <div className="Margin-left--40 Margin-right--40">
           <Formik
             initialValues={initialValues}
             validationSchema={validationSchema}
             onSubmit={handleSubmit}
           >
-            {({ errors, touched, isSubmitting, values, setFieldValue }) => (
+            {({ errors, touched, isSubmitting }) => (
               <Form>
-                <div className="Form-group">
-                  <label>Name:</label>
-                  <Field
-                    type="text"
-                    name="name"
-                    placeholder="Enter mentee name"
-                    className="Form-input-box"
-                    autoComplete="name"
-                  />
-                  {errors.name && touched.name && (
-                    <div className="Form-error">{errors.name}</div>
-                  )}
-                </div>
-                <div className="Form-group">
-                  <label>Email Address:</label>
-                  <Field
-                    type="email"
-                    name="email"
-                    placeholder="Enter email address"
-                    className="Form-input-box"
-                    autoComplete="email"
-                  />
-                  {errors.email && touched.email && (
-                    <div className="Form-error">{errors.email}</div>
-                  )}
-                </div>
-
-                <div className="Form-group">
-                  <label>Verify Email Address:</label>
-                  <Field
-                    type="email"
-                    name="verifyEmail"
-                    placeholder="Verify email address"
-                    className="Form-input-box"
-                    autoComplete="email"
-                  />
-                  {errors.verifyEmail && touched.verifyEmail && (
-                    <div className="Form-error">{errors.verifyEmail}</div>
-                  )}
-                </div>
-                <div className="Form-group">
-                  <label className="Form-label">
-                    Select a Role to Assign to This User:
-                  </label>
-                  <div className="Role-tags">
-                    {roles.map((role) => (
-                      <div key={role.id} className="Role-tag-item">
-                        <input
-                          type="radio"
-                          id={`role-${role.id}`}
-                          name="role"
-                          className="Role-tag-input"
-                          checked={values.role === role.id}
-                          onChange={() => setFieldValue("role", role.id)}
-                        />
-                        <label
-                          htmlFor={`role-${role.id}`}
-                          className="Role-tag-label"
-                        >
-                          {role.label}
-                        </label>
-                      </div>
-                    ))}
-                    {errors.role && touched.role && (
-                      <div className="Form-error">{errors.role}</div>
+                <div className="Margin-bottom--30">
+                  <div className="Form-group">
+                    <div className="Flex-row Text-fontSize--16 Text-color--gray-1000 Margin-bottom--8">
+                      <div>Name:</div>
+                    </div>
+                    <Field
+                      type="text"
+                      name="name"
+                      placeholder="Enter mentee name"
+                      className="Form-input-box"
+                      autoComplete="name"
+                    />
+                    {errors.name && touched.name && (
+                      <div className="Form-error">{errors.name}</div>
                     )}
                   </div>
                 </div>
-                <button
-                  type="submit"
-                  className="Button Button-color--blue-1000 Width--100"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <AsyncSubmit loading={isLoading} />
-                  ) : (
-                    <div className="Flex-row Align-items--center Justify-content--center">
-                      <span>Send Invite</span>
+                <div className="Margin-bottom--30">
+                  <div className="Form-group">
+                    <div className="Flex-row Text-fontSize--16 Text-color--gray-1000 Margin-bottom--8">
+                      <div>Email Address:</div>
                     </div>
-                  )}
-                </button>
+                    <Field
+                      type="email"
+                      name="email"
+                      placeholder="Enter email address"
+                      className="Form-input-box"
+                      autoComplete="email"
+                    />
+                    {errors.email && touched.email && (
+                      <div className="Form-error">{errors.email}</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="Margin-bottom--30">
+                  <div className="Form-group">
+                    <div className="Flex-row Text-fontSize--16 Text-color--gray-1000 Margin-bottom--8">
+                      <div>Verify Email Address:</div>
+                    </div>
+                    <Field
+                      type="email"
+                      name="verifyEmail"
+                      placeholder="Verify email address"
+                      className="Form-input-box"
+                      autoComplete="email"
+                    />
+                    {errors.verifyEmail && touched.verifyEmail && (
+                      <div className="Form-error">{errors.verifyEmail}</div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="Flex-row Justify-content--center Margin-top--30">
+                  <button
+                    type="submit"
+                    className="Button Button-color--teal-1000 Width--50"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <AsyncSubmit loading={isLoading} />
+                    ) : (
+                      <div className="Flex-row Align-items--center Justify-content--center">
+                        <span>Send Invite</span>
+                      </div>
+                    )}
+                  </button>
+                </div>
               </Form>
             )}
           </Formik>
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default SampleMenteeInvite
+export default SampleMenteeInvite;

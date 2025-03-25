@@ -26,7 +26,7 @@ export const generatePresignedUrl = async (req: Request, res: Response) => {
   const params = {
     Bucket: bucketName,
     Key: objectKey,
-    Expires: 3600,
+    Expires: 60 * 5, // URL expires in 5 minutes
   };
 
   try {
@@ -99,17 +99,13 @@ export const getWorkshopsByUserId = async (req: Request, res: Response) => {
   }
 };
 
-// get all workshops
+// Get all workshops in the database
 export const getAllWorkshops = async (req: Request, res: Response) => {
   try {
-    const workshops = await Workshop.find();
-
-    if (workshops.length === 0) {
-      return res.status(404).json({ message: "No workshops found" });
-    }
-
+    const workshops = await Workshop.find({});
     res.status(200).json(workshops);
   } catch (error) {
-    res.status(500).json({ message: "Error retrieving workshops", error });
+    console.error("Error retrieving all workshops:", error); // 🔍 log error
+    res.status(500).json({ message: "Failed to retrieve workshops", error });
   }
 };
