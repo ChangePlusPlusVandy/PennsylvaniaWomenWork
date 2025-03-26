@@ -1,9 +1,10 @@
 import { Request, Response } from "express";
 import sgMail from "@sendgrid/mail";
 import User from "../model/User";
-import { management } from "../config/auth0-user-management";
-import generatePassword from "generate-password";
-import { error } from "console";
+import {
+  createAuthUser,
+  createUserLink,
+} from "../config/auth0-user-management";
 
 export const createUser = async (req: Request, res: Response) => {
   const {
@@ -57,27 +58,25 @@ export const createUser = async (req: Request, res: Response) => {
   }
 };
 
+/**
+ * Creates a new auth0 user and invites them
+ *
+ */
 export const sendEmail = async (req: Request, res: Response) => {
   try {
     const SENDGRID_API_KEY = process.env.SEND_GRID_API_KEY || "";
     const SEND_GRID_TEST_EMAIL = process.env.SEND_GRID_TEST_EMAIL || "";
+    const PUBLIC_APP_URL = process.env.PUBLIC_APP_URL || "";
 
-    if (SENDGRID_API_KEY === "" || SEND_GRID_TEST_EMAIL === "") {
-      throw new Error("SendGrid API key or test email is missing");
+    if (!SENDGRID_API_KEY || !SEND_GRID_TEST_EMAIL || !PUBLIC_APP_URL) {
+      throw new Error(
+        "SendGrid API key, test email, public app url is missing",
+      );
     }
 
-    const { email, name, role, email_type } = req.body;
+    const { email, name, role } = req.body;
 
     sgMail.setApiKey(SENDGRID_API_KEY);
-
-    const dummy_password = generatePassword.generate({
-      length: 15,
-      numbers: true,
-      symbols: true,
-      uppercase: true,
-      lowercase: true,
-      strict: true,
-    });
 
     let templateId: string;
     const cleanedUserRole = role.toLowerCase().trim();
@@ -91,29 +90,10 @@ export const sendEmail = async (req: Request, res: Response) => {
     }
 
     // create the user
-    const newUser = await management.users.create({
-      email: email,
-      connection: "Username-Password-Authentication",
-      password: dummy_password,
-      email_verified: true,
-    });
+    const newUser = await createAuthUser(email);
 
-    if (newUser.status === 409) {
-      throw new Error("That user already exists");
-    } else if (newUser.status !== 201) {
-      throw new Error("Failed to create new user");
-    }
-
-    // create user link verification
-    const userId = newUser.data.user_id;
-
-    const linkResponse = await management.tickets.changePassword({
-      user_id: userId,
-    });
-
-    if (linkResponse.status !== 201) {
-      throw new Error("Could not complete user sign up flow");
-    }
+    // retrieve the reset password link
+    const Auth0ResetLink = await createUserLink(newUser.data.user_id);
 
     await sgMail.send({
       to: email,
@@ -121,12 +101,17 @@ export const sendEmail = async (req: Request, res: Response) => {
       templateId: templateId,
       dynamicTemplateData: {
         name: name,
-        password_reset_link: linkResponse.data.ticket,
+        password_reset_link: Auth0ResetLink,
+        app_url: PUBLIC_APP_URL,
       },
     });
 
     return res.status(200).json({ message: "Email successfully sent" });
-  } catch (err) {
+  } catch (err: any) {
+    if (err.message == "User exists") {
+      return res.status(409).json({ message: "User already exists" });
+    }
+    console.error("Failed to send email ", err);
     return res.status(400).json({ message: "Email sending failed" });
   }
 };
