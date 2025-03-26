@@ -6,6 +6,7 @@
   "scripts": {
     "build": "tsc",
     "start": "npx ts-node src/server.ts",
+    "start:prod": "node dist/server.js",
     "dev": "nodemon --exec 'ts-node-dev' src/server.ts",
     "test": "echo \"Error: no test specified\" && exit 1",
     "prettier": "npx prettier --write .",
