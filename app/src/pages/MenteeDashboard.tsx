@@ -21,8 +21,27 @@ const MenteeDashboard = () => {
   const { user } = useUser();
   const userId = user?._id;
   const [loading, setLoading] = useState(true);
+  const start = selectedEvent ? new Date(selectedEvent.startTime) : null;
+  const end = selectedEvent ? new Date(selectedEvent.endTime) : null;
+  const eventDate = selectedEvent ? new Date(selectedEvent.date) : null;
 
-  useEffect(() => {
+  const formattedSubheader =
+      eventDate && start && end
+          ? `${eventDate.toLocaleString("default", {
+              month: "long",
+          })} ${eventDate.getDate()}, ${eventDate.getFullYear()} ${start.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+          })} - ${end.toLocaleTimeString("en-US", {
+              hour: "2-digit",
+              minute: "2-digit",
+              hour12: true,
+          })}`
+          : "";
+
+
+    useEffect(() => {
     if (!userId) return;
 
     const fetchData = async () => {
@@ -34,13 +53,13 @@ const MenteeDashboard = () => {
 
         setEvents(
           eventsResponse.data.map((event: any) => ({
-            id: event._id,
-            title: event.name,
+            name: event.name,
             startTime: event.startTime,
             endTime: event.endTime,
             description: event.description,
             date: event.date,
-            calendarLink: event.calendarLink,
+            userIds: event.users || [],
+            calendarLink: event.calendarLink || "",
           })),
         );
 
@@ -92,13 +111,15 @@ const MenteeDashboard = () => {
     return <div>Loading...</div>;
   }
 
+
+
   return (
     <>
       <Navbar />
       {selectedEvent && (
         <Modal
           header={selectedEvent.name}
-          subheader={`${new Date(selectedEvent.date).toLocaleString("default", { month: "long" })} ${new Date(selectedEvent.date).getDate()}, ${new Date(selectedEvent.date).getFullYear()} ${new Date(selectedEvent.startTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })} - ${new Date(selectedEvent.endTime).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true })}`}
+          subheader={formattedSubheader}
           body={
             <>
               {selectedEvent.description}

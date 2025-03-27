@@ -1,15 +1,4 @@
 import React from "react";
-
-// export interface EventData {
-//   userIds: string[]
-//   //day: string
-//   date: string
-//   //month: string
-//   name: string
-//   description: string
-//   formattedDate?: string
-//   calendarLink?: string
-// }
 export interface EventData {
   userIds: string[];
   date: string;

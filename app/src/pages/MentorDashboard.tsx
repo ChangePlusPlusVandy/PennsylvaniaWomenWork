@@ -42,6 +42,16 @@ const MentorDashboard = () => {
       return;
     }
 
+    const fetchUserEvents = async () => {
+      try {
+        const response = await api.get(`/api/event/${userId}`);
+        setEvents(response.data);
+      } catch (err) {
+        console.error("Error fetching events:", err);
+        setError("Failed to load events.");
+      }
+    };
+
     if (
       !userId ||
       (user.role !== "mentor" && user.role !== "staff" && user.role !== "board")
@@ -74,7 +84,7 @@ const MentorDashboard = () => {
         setLoading(false);
       }
     };
-
+    fetchUserEvents();
     fetchMentees();
   }, [user, userId]);
 
@@ -128,7 +138,8 @@ const MentorDashboard = () => {
     date: string;
     startTime: string;
     endTime: string;
-    userIds: string[];
+    // userIds: string[];
+    roles: string[];
     calendarLink?: string;
   }) => {
     try {
@@ -150,6 +161,7 @@ const MentorDashboard = () => {
     if (user?.role === "board") {
       setActiveTab("Courses");
     }
+
   }, [user?.role]);
 
   return (
