@@ -223,7 +223,13 @@ const MentorDashboard = () => {
                     </div>
                   ) : (
                     // Other roles see both tabs
-                    ["My Mentees", "All Mentors", "Courses"].map((tab) => (
+                    [
+                      "My Mentees",
+                      ...(user?.role === "staff" || user?.role === "board"
+                        ? ["All Mentors"]
+                        : []),
+                      "Courses",
+                    ].map((tab) => (
                       <div
                         key={tab}
                         onClick={() => setActiveTab(tab)}
@@ -269,28 +275,29 @@ const MentorDashboard = () => {
                 </div>
               )}
 
-              {activeTab === "All Mentors" && (
-                <div>
-                  {mentors.length > 0 ? (
-                    <div className="row gx-3 gy-3">
-                      {mentors.map((mentor) => (
-                        <div className="col-lg-4" key={mentor._id}>
-                          <div className="Mentor--card">
-                            <div className="Mentor--card-color Background-color--teal-1000" />
-                            <div className="Padding--10">
-                              <div className="Mentor--card-name">
-                                {mentor.first_name} {mentor.last_name}
+              {(user?.role === "staff" || user?.role === "board") &&
+                activeTab === "All Mentors" && (
+                  <div>
+                    {mentors.length > 0 ? (
+                      <div className="row gx-3 gy-3">
+                        {mentors.map((mentor) => (
+                          <div className="col-lg-4" key={mentor._id}>
+                            <div className="Mentor--card">
+                              <div className="Mentor--card-color Background-color--teal-1000" />
+                              <div className="Padding--10">
+                                <div className="Mentor--card-name">
+                                  {mentor.first_name} {mentor.last_name}
+                                </div>
                               </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <p>No mentors found.</p>
-                  )}
-                </div>
-              )}
+                        ))}
+                      </div>
+                    ) : (
+                      <p>No mentors found.</p>
+                    )}
+                  </div>
+                )}
 
               {activeTab === "Courses" && (
                 <div className="row gx-3 gy-3">
