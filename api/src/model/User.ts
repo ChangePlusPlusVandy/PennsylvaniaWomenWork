@@ -1,6 +1,5 @@
 import mongoose from "mongoose";
 
-// User schema definition
 const userSchema = new mongoose.Schema({
   sub: String, // Auth0 ID
   email: String,
@@ -9,6 +8,7 @@ const userSchema = new mongoose.Schema({
   firstName: String,
   lastName: String,
   mentor_id: String,
+  workshops: [{ type: mongoose.Schema.Types.ObjectId, ref: "Workshop" }], // Store workshop IDs
 });
 
 const User = mongoose.model("User", userSchema);

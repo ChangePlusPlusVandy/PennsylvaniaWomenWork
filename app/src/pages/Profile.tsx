@@ -1,23 +1,23 @@
-import React from "react"
-import Navbar from "../components/Navbar"
-import { useUser } from "../contexts/UserContext"
-import { useAuth0 } from "@auth0/auth0-react"
+import React from "react";
+import Navbar from "../components/Navbar";
+import { useUser } from "../contexts/UserContext";
+import { useAuth0 } from "@auth0/auth0-react";
 
 const Profile = () => {
-  const { user: auth0User, logout } = useAuth0()
-  const { user, error, loading } = useUser()
+  const { user: auth0User, logout } = useAuth0();
+  const { user, error, loading } = useUser();
 
   // Function to compute initials from first and last name
   const getInitials = () => {
-    if (!user) return ""
+    if (!user) return "";
     const firstInitial = user.first_name
       ? user.first_name.charAt(0).toUpperCase()
-      : ""
+      : "";
     const lastInitial = user.last_name
       ? user.last_name.charAt(0).toUpperCase()
-      : ""
-    return firstInitial + lastInitial
-  }
+      : "";
+    return firstInitial + lastInitial;
+  };
 
   return (
     <>
@@ -53,7 +53,7 @@ const Profile = () => {
               <div
                 className="Button Button-color--blue-1000 Margin-top--20"
                 onClick={() => {
-                  logout()
+                  logout();
                 }}
               >
                 Log Out
@@ -65,7 +65,7 @@ const Profile = () => {
         )}
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Profile
+export default Profile;

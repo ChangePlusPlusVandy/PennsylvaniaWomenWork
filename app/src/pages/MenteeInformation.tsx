@@ -1,98 +1,161 @@
-import React, { useState, useEffect } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
-import Navbar from "../components/Navbar"
-import Icon from "../components/Icon"
-import Modal from "../components/Modal"
-import { Formik, Form, Field } from "formik"
-import * as yup from "yup"
-import { api } from "../api"
-import { useUser } from "../contexts/UserContext"
-import { tier1Roles } from "../utils/roles"
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import Icon from "../components/Icon";
+import Modal from "../components/Modal";
+import { Formik, Form, Field } from "formik";
+import * as yup from "yup";
+import { api } from "../api";
+import { useUser } from "../contexts/UserContext";
+import { tier1Roles } from "../utils/roles";
+import { toast } from "react-hot-toast";
+
+interface Workshop {
+  _id: string;
+  name: string;
+  description: string;
+  mentor: string;
+  mentees: string[];
+}
 
 interface MenteeInfo {
-  _id: string // Mentee's unique ID (MongoDB ObjectID or Auth0 ID)
-  first_name: string
-  last_name: string
-  email: string
-  role: string // e.g., "mentee"
-  mentor?: string // Optional mentor ID assigned to mentee
-  workshops: string[] // List of workshop/course names
+  _id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: string;
+  mentor?: string;
+  workshops: string[]; // Array of workshop names
 }
 
 const MenteeInformation = () => {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const menteeId = location.state?.menteeId
-  const [mentee, setMentee] = useState<MenteeInfo | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isModal, setIsModal] = useState(false)
-  const { user } = useUser()
+  const navigate = useNavigate();
+  const location = useLocation();
+  const menteeId = location.state?.menteeId;
+  const [mentee, setMentee] = useState<MenteeInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isModal, setIsModal] = useState(false);
+  const { user } = useUser();
+  const [availableWorkshops, setAvailableWorkshops] = useState([]);
+  const [assignedWorkshops, setAssignedWorkshops] = useState<Workshop[]>([]);
 
   useEffect(() => {
     if (!menteeId) {
-      setError("Mentee ID is missing.")
-      setLoading(false)
-      return
+      setError("Mentee ID is missing.");
+      setLoading(false);
+      return;
     }
 
-    const fetchMentee = async () => {
+    const fetchMenteeData = async () => {
       try {
-        console.log("Fetching mentee data for ID:", menteeId)
-        const response = await api.get(`/api/mentee/get-mentee/${menteeId}`)
-        setMentee(response.data)
-        console.log("Fetched mentee data:", response.data)
-      } catch (err) {
-        setError("Failed to load mentee details.")
-      } finally {
-        setLoading(false)
-      }
-    }
+        // Fetch mentee details
+        const menteeResponse = await api.get(
+          `/api/mentee/get-mentee/${menteeId}`,
+        );
+        setMentee(menteeResponse.data);
 
-    fetchMentee()
-  }, [menteeId])
+        // Fetch workshops assigned to this mentee
+        const workshopsResponse = await api.get(
+          `/api/mentee/${menteeId}/workshops`,
+        );
+        setAssignedWorkshops(workshopsResponse.data);
+
+        console.log("Mentee data:", menteeResponse.data);
+        console.log("Assigned workshops:", workshopsResponse.data);
+      } catch (err) {
+        setError("Failed to load mentee details.");
+        console.error("Error fetching mentee data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMenteeData();
+  }, [menteeId]);
+
+  useEffect(() => {
+    const fetchWorkshops = async () => {
+      try {
+        const response = await api.get("/api/workshop/get-workshops");
+        setAvailableWorkshops(response.data);
+      } catch (err) {
+        console.error("Error fetching workshops:", err);
+      }
+    };
+    fetchWorkshops();
+  }, []);
 
   const initialValues = {
     courseName: "",
-    startDate: "",
-    description: "",
-  }
+  };
 
   const validationSchema = yup.object({
-    courseName: yup.string().required("Course name is required"),
-    startDate: yup.date().required("Start date is required"),
-    description: yup.string().required("Course description is required"),
-  })
+    courseName: yup.string().required("Course selection is required"),
+  });
 
   const handleSubmit = async (
     values: typeof initialValues,
-    { setSubmitting }: any
+    { setSubmitting }: any,
   ) => {
     try {
-      console.log("Assign course values:", values)
-      // Here you would call your API to assign the course
-      setIsModal(false)
+      if (!menteeId) {
+        throw new Error("Mentee ID is missing");
+      }
+
+      console.log(
+        "Assigning workshop:",
+        values.courseName,
+        "to mentee:",
+        menteeId,
+      );
+
+      const payload = {
+        workshopId: values.courseName,
+      };
+
+      console.log("Sending payload:", payload);
+
+      const response = await api.put(
+        `/api/mentee/${menteeId}/add-workshop`,
+        payload,
+      );
+
+      console.log("Assignment response:", response);
+
+      if (response.status === 200) {
+        toast.success("Workshop assigned successfully!");
+        const updatedMentee = await api.get(
+          `/api/mentee/get-mentee/${menteeId}`,
+        );
+        setMentee(updatedMentee.data);
+        setIsModal(false);
+      } else {
+        throw new Error("Failed to assign workshop");
+      }
     } catch (error) {
-      console.error("Error assigning course:", error)
+      console.error("Error assigning workshop:", error);
+      toast.error("Failed to assign workshop");
+    } finally {
+      setSubmitting(false);
     }
-    setSubmitting(false)
-  }
+  };
 
   // Compute initials for the mentee's avatar
   const getInitials = () => {
-    if (!mentee) return ""
+    if (!mentee) return "";
     return (
       mentee.first_name.charAt(0).toUpperCase() +
       mentee.last_name.charAt(0).toUpperCase()
-    )
-  }
+    );
+  };
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   if (error) {
-    return <div>{error}</div>
+    return <div>{error}</div>;
   }
 
   return (
@@ -143,18 +206,18 @@ const MenteeInformation = () => {
               <div className="Block-subtitle">
                 Courses assigned to {mentee?.first_name}
               </div>
-              {mentee?.workshops && mentee.workshops.length > 0 ? (
-                <ul className="list-unstyled">
-                  {mentee.workshops.map((course, index) => (
-                    <li key={index} className="mb-2">
-                      <span className="me-2">&#8226;</span> {course}
-                    </li>
+              {assignedWorkshops.length > 0 ? (
+                <div className="Flex-col">
+                  {assignedWorkshops.map((workshop) => (
+                    <div key={workshop._id} className="Profile-field">
+                      {workshop.name}
+                    </div>
                   ))}
-                </ul>
+                </div>
               ) : (
                 <p>No courses assigned.</p>
               )}
-              {user && tier1Roles.includes(user.role) && (
+              {(user?.role === "staff" || user?.role === "mentor") && (
                 <button
                   className="Button Button-color--blue-1000 Width--100"
                   onClick={() => setIsModal(true)}
@@ -209,60 +272,32 @@ const MenteeInformation = () => {
             >
               {({ errors, touched, isSubmitting }) => (
                 <Form>
-                  <div className="mb-3">
-                    <label htmlFor="courseName" className="form-label">
-                      Course Name
-                    </label>
+                  <div className="Form-group">
+                    <label htmlFor="courseName">Select Workshop</label>
                     <Field
-                      className="form-control"
-                      type="text"
+                      as="select"
+                      className="Form-input-box"
                       id="courseName"
                       name="courseName"
-                      placeholder="Enter course name"
-                    />
+                    >
+                      <option value="">Select a workshop...</option>
+                      {availableWorkshops.map((workshop: any) => (
+                        <option key={workshop._id} value={workshop._id}>
+                          {workshop.name}
+                        </option>
+                      ))}
+                    </Field>
                     {errors.courseName && touched.courseName && (
-                      <div className="text-danger">{errors.courseName}</div>
-                    )}
-                  </div>
-
-                  <div className="mb-3">
-                    <label htmlFor="startDate" className="form-label">
-                      Start Date
-                    </label>
-                    <Field
-                      className="form-control"
-                      type="date"
-                      id="startDate"
-                      name="startDate"
-                    />
-                    {errors.startDate && touched.startDate && (
-                      <div className="text-danger">{errors.startDate}</div>
-                    )}
-                  </div>
-
-                  <div className="mb-3">
-                    <label htmlFor="description" className="form-label">
-                      Description
-                    </label>
-                    <Field
-                      className="form-control"
-                      as="textarea"
-                      id="description"
-                      name="description"
-                      rows="3"
-                      placeholder="Enter course description"
-                    />
-                    {errors.description && touched.description && (
-                      <div className="text-danger">{errors.description}</div>
+                      <div className="Form-error">{errors.courseName}</div>
                     )}
                   </div>
 
                   <button
                     type="submit"
-                    className="btn btn-teal w-100"
+                    className="Button Button-color--teal-1000 Width--100"
                     disabled={isSubmitting}
                   >
-                    Assign Course
+                    {isSubmitting ? "Assigning..." : "Assign Workshop"}
                   </button>
                 </Form>
               )}
@@ -271,7 +306,7 @@ const MenteeInformation = () => {
         />
       )}
     </>
-  )
-}
+  );
+};
 
-export default MenteeInformation
+export default MenteeInformation;

@@ -3,6 +3,7 @@ import {
   createResource,
   getResourcesByWorkshopId,
   generateRetrievalURL,
+  getAllTags,
 } from "../controllers/resourceController";
 
 const router = express.Router();
@@ -15,4 +16,5 @@ router.get("/get-resource-by-workshop/:workshopId", getResourcesByWorkshopId);
 
 router.get("/getURL/:objectId", generateRetrievalURL);
 
+router.get("/all-tags", getAllTags);
 export default router;

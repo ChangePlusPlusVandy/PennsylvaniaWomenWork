@@ -1,26 +1,25 @@
-import React, { type ReactElement } from "react"
-import { Routes, Route, Navigate } from "react-router-dom"
-import MentorDashboard from "./pages/MentorDashboard"
-import MenteeDashboard from "./pages/MenteeDashboard"
-import ConfirmLogout from "./pages/ConfirmLogout"
-import CreateWorkshop from "./pages/CreateWorkshop"
-import CreateMeeting from "./pages/CreateMeeting"
-import MenteeInformation from "./pages/MenteeInformation"
-import WorkshopInformation from "./pages/WorkshopInformation"
-import MenteeCourseInformation from "./pages/MenteeCourseInformation"
-import AuthCallback from "./pages/auth-callback"
-import LoginRedirect from "./pages/LoginRedirect"
-import Logout from "./pages/Logout"
-import Profile from "./pages/Profile"
-import SampleMenteeInvite from "./pages/MenteeInvite"
-import ProtectedRoute from "./components/ProtectedRoute"
-import { tier1Roles, tier2Roles, tier3Roles } from "./utils/roles"
-import { useAuth0 } from "@auth0/auth0-react"
-import { useUser } from "./contexts/UserContext"
+import React, { type ReactElement } from "react";
+import { Routes, Route, Navigate } from "react-router-dom";
+import MentorDashboard from "./pages/MentorDashboard";
+import MenteeDashboard from "./pages/MenteeDashboard";
+import ConfirmLogout from "./pages/ConfirmLogout";
+import CreateWorkshop from "./pages/CreateWorkshop";
+import CreateMeeting from "./pages/CreateMeeting";
+import MenteeInformation from "./pages/MenteeInformation";
+import WorkshopInformation from "./pages/WorkshopInformation";
+import AuthCallback from "./pages/auth-callback";
+import LoginRedirect from "./pages/LoginRedirect";
+import Logout from "./pages/Logout";
+import Profile from "./pages/Profile";
+import SampleMenteeInvite from "./pages/MenteeInvite";
+import ProtectedRoute from "./components/ProtectedRoute";
+import { tier1Roles, tier2Roles, tier3Roles } from "./utils/roles";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useUser } from "./contexts/UserContext";
 
 function App(): ReactElement {
-  const { isAuthenticated } = useAuth0()
-  const { user } = useUser()
+  const { isAuthenticated } = useAuth0();
+  const { user } = useUser();
 
   if (!isAuthenticated) {
     // Unauthenticated users are directed to the login flow
@@ -32,7 +31,7 @@ function App(): ReactElement {
         <Route path="/" element={<LoginRedirect />} />
         <Route path="*" element={<LoginRedirect />} />
       </Routes>
-    )
+    );
   }
 
   // Authenticated routes are wrapped with ProtectedRoute using RBAC
@@ -82,16 +81,6 @@ function App(): ReactElement {
         }
       />
 
-      <Route
-        path="/mentee/course-information"
-        element={
-          <ProtectedRoute
-            element={<MenteeCourseInformation />}
-            allowedRoles={["mentee", "admin"]}
-          />
-        }
-      />
-
       <Route path="/confirmLogout" element={<ConfirmLogout />} />
 
       <Route
@@ -131,7 +120,7 @@ function App(): ReactElement {
         element={
           <ProtectedRoute
             element={<WorkshopInformation />}
-            allowedRoles={[...tier1Roles, ...tier2Roles]}
+            allowedRoles={[...tier1Roles, ...tier2Roles, ...tier3Roles]}
           />
         }
       />
@@ -146,7 +135,7 @@ function App(): ReactElement {
         }
       />
     </Routes>
-  )
+  );
 }
 
-export default App
+export default App;

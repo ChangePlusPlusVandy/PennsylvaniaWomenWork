@@ -13,7 +13,7 @@ export const createUser = async (req: Request, res: Response) => {
     username,
     email,
     role,
-    workshopIDs,
+    workshops,
     menteeInfo,
     meetingSchedule,
     mentorData,
@@ -40,7 +40,7 @@ export const createUser = async (req: Request, res: Response) => {
       username,
       email,
       role,
-      workshopIDs: role === "mentor" ? workshopIDs : undefined,
+      workshops: role === "mentor" ? workshops : undefined,
       menteeInfo: role === "mentor" ? menteeInfo : undefined,
       meetingSchedule: role === "mentee" ? meetingSchedule : undefined,
       mentorData: role === "mentee" ? mentorData : undefined,
@@ -179,8 +179,8 @@ export const getCurrentUser = async (req: Request, res: Response) => {
       _id: user._id.toString(), // Convert MongoDB ObjectId to string
       username: user.username,
       role: user.role,
-      firstName: user.firstName, // Include firstName
-      lastName: user.lastName, // Include lastName
+      firstName: user.firstName,
+      lastName: user.lastName,
     });
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -196,7 +196,7 @@ export const updateUser = async (req: Request, res: Response) => {
     "username",
     "email",
     "role",
-    "workshopIDs",
+    "workshops",
     "menteeInfo",
     "meetingSchedule",
     "mentorData",

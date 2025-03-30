@@ -1,14 +1,14 @@
-import React, { type ReactElement } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
-import { useAuth0 } from "@auth0/auth0-react"
-import { useUser } from "../contexts/UserContext"
-import { tier1Roles, tier2Roles, tier3Roles } from "../utils/roles"
+import React, { type ReactElement } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useUser } from "../contexts/UserContext";
+import { tier1Roles, tier2Roles, tier3Roles } from "../utils/roles";
 
 const Navbar = (): ReactElement => {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { isAuthenticated, logout } = useAuth0()
-  const { user } = useUser()
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated, logout } = useAuth0();
+  const { user } = useUser();
 
   const navItems = [
     { path: "/mentor", label: "Home", roles: [...tier1Roles, ...tier2Roles] },
@@ -33,25 +33,25 @@ const Navbar = (): ReactElement => {
       label: "Profile",
       roles: [...tier1Roles, ...tier2Roles, ...tier3Roles],
     },
-  ]
+  ];
 
   const filteredNavItems = navItems.filter((item) => {
-    if (!user) return false
+    if (!user) return false;
 
     // Special case: only show the correct Home tab
     if (item.label === "Home") {
       if (item.path === "/mentor") {
-        return user.role === "mentor" || tier1Roles.includes(user.role)
+        return user.role === "mentor" || tier1Roles.includes(user.role);
       }
       if (item.path === "/mentee") {
-        return user.role === "mentee"
+        return user.role === "mentee";
       }
-      return false
+      return false;
     }
 
     // For all other tabs, use standard RBAC
-    return item.roles.includes(user.role)
-  })
+    return item.roles.includes(user.role);
+  });
 
   return (
     <div className="Navbar">
@@ -92,7 +92,7 @@ const Navbar = (): ReactElement => {
             <div
               className="Button Button-color--teal-1000"
               onClick={() => {
-                logout()
+                logout();
               }}
             >
               Log Out
@@ -101,7 +101,7 @@ const Navbar = (): ReactElement => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

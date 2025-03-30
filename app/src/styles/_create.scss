@@ -1,16 +1,12 @@
-
-
 .Role-tags {
   display: flex;
   flex-direction: row;
   justify-content: space-between;
 }
 
-
 .Role-tag-item {
   position: relative;
 }
-
 
 .Role-tag-label {
   display: inline-block;
@@ -22,7 +18,6 @@
   transition: all 0.2s ease;
 }
 
-
 .Role-tag-input {
   position: absolute;
   opacity: 0;
@@ -31,13 +26,11 @@
   width: 0;
 }
 
-
 .Role-tag-input:checked + .Role-tag-label {
   background-color: var(--pww-color-blue-1000);
   color: var(--pww-color-light-1000);
   border-color: var(--pww-color-blue-1000);
 }
-
 
 .Selected-roles {
   margin-top: 10px;

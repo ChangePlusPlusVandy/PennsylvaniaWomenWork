@@ -1,19 +1,19 @@
-import React, { useState } from "react"
-import { Formik, Form, Field } from "formik"
-import Navbar from "../components/Navbar"
-import * as Yup from "yup"
-import { api } from "../api" // Ensure this points to your configured API instance
-import Icon from "../components/Icon"
+import React, { useState } from "react";
+import { Formik, Form, Field } from "formik";
+import Navbar from "../components/Navbar";
+import * as Yup from "yup";
+import { api } from "../api"; // Ensure this points to your configured API instance
+import Icon from "../components/Icon";
 
 interface CreateMeetingFormValues {
-  username: string
-  meeting: string
-  date: string
-  startTime: string
-  endTime: string
-  calendarLink: string
-  participants: string[]
-  role: string[]
+  username: string;
+  meeting: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  calendarLink: string;
+  participants: string[];
+  role: string[];
 }
 
 const initialValues: CreateMeetingFormValues = {
@@ -25,14 +25,14 @@ const initialValues: CreateMeetingFormValues = {
   calendarLink: "",
   participants: [],
   role: [],
-}
+};
 
 const roles = [
   { id: "mentee", label: "Mentee" },
   { id: "mentor", label: "Mentor" },
   { id: "staff", label: "Staff" },
   { id: "board", label: "Board" },
-]
+];
 
 // Validation schema using Yup
 const validationSchema = Yup.object().shape({
@@ -45,9 +45,9 @@ const validationSchema = Yup.object().shape({
       "is-after-start",
       "End time must be after start time",
       function (endTime) {
-        const { startTime } = this.parent
-        return !startTime || !endTime || startTime < endTime
-      }
+        const { startTime } = this.parent;
+        return !startTime || !endTime || startTime < endTime;
+      },
     ),
   calendarLink: Yup.string()
     .url("Must be a valid URL")
@@ -55,26 +55,26 @@ const validationSchema = Yup.object().shape({
   participants: Yup.array()
     .of(Yup.string())
     .min(1, "Add at least one participant"),
-})
+});
 
 const CreateMeeting = () => {
-  const [newParticipant, setNewParticipant] = useState("")
+  const [newParticipant, setNewParticipant] = useState("");
 
   const handleSubmit = async (
     values: CreateMeetingFormValues,
-    { setSubmitting, resetForm }: any
+    { setSubmitting, resetForm }: any,
   ) => {
-    setSubmitting(true)
+    setSubmitting(true);
     try {
-      const baseDate = new Date(values.date)
+      const baseDate = new Date(values.date);
 
-      const [startHours, startMinutes] = values.startTime.split(":")
-      const startDateTime = new Date(baseDate)
-      startDateTime.setHours(parseInt(startHours), parseInt(startMinutes))
+      const [startHours, startMinutes] = values.startTime.split(":");
+      const startDateTime = new Date(baseDate);
+      startDateTime.setHours(parseInt(startHours), parseInt(startMinutes));
 
-      const [endHours, endMinutes] = values.endTime.split(":")
-      const endDateTime = new Date(baseDate)
-      endDateTime.setHours(parseInt(endHours), parseInt(endMinutes))
+      const [endHours, endMinutes] = values.endTime.split(":");
+      const endDateTime = new Date(baseDate);
+      endDateTime.setHours(parseInt(endHours), parseInt(endMinutes));
 
       const payload = {
         username: "sample-username", // TODO: Replace with logged-in username
@@ -85,21 +85,21 @@ const CreateMeeting = () => {
         participants: values.participants,
         calendarLink: values.calendarLink,
         role: values.role,
-      }
+      };
 
-      console.log("Submitting payload:", payload) // Debugging log
+      console.log("Submitting payload:", payload); // Debugging log
 
-      await api.post("/user/add-meeting", payload)
+      await api.post("/user/add-meeting", payload);
 
-      alert("Meeting added successfully!")
-      resetForm() // Clear the form after successful submission
+      alert("Meeting added successfully!");
+      resetForm(); // Clear the form after successful submission
     } catch (error) {
-      console.error("Error adding meeting:", error)
-      alert("Failed to add meeting. Please try again.")
+      console.error("Error adding meeting:", error);
+      alert("Failed to add meeting. Please try again.");
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   return (
     <>
@@ -181,7 +181,7 @@ const CreateMeeting = () => {
                       type="text"
                       value={newParticipant}
                       onChange={(e: {
-                        target: { value: React.SetStateAction<string> }
+                        target: { value: React.SetStateAction<string> };
                       }) => setNewParticipant(e.target.value)}
                       placeholder="Enter participant name"
                       className="Form-input-box"
@@ -194,8 +194,8 @@ const CreateMeeting = () => {
                           setFieldValue("participants", [
                             ...values.participants,
                             newParticipant.trim(),
-                          ])
-                          setNewParticipant("")
+                          ]);
+                          setNewParticipant("");
                         }
                       }}
                       style={{ marginLeft: "8px" }}
@@ -214,9 +214,9 @@ const CreateMeeting = () => {
                           <div
                             className="Text-colorHover--red-1000"
                             onClick={() => {
-                              const newParticipants = [...values.participants]
-                              newParticipants.splice(index, 1)
-                              setFieldValue("participants", newParticipants)
+                              const newParticipants = [...values.participants];
+                              newParticipants.splice(index, 1);
+                              setFieldValue("participants", newParticipants);
                             }}
                             style={{ marginLeft: "4px" }}
                           >
@@ -243,7 +243,7 @@ const CreateMeeting = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default CreateMeeting
+export default CreateMeeting;
