@@ -30,3 +30,18 @@ export const getMenteesForMentor = async (
     res.status(500).json({ message: "An error occurred", error });
   }
 };
+
+export const getAllMentors = async (req: Request, res: Response) => {
+  try {
+    const mentors = await User.find({ role: "mentor" });
+
+    if (!mentors || mentors.length === 0) {
+      return res.status(404).json({ message: "No mentors found" });
+    }
+
+    res.status(200).json(mentors);
+  } catch (error) {
+    console.error("Error getting all mentors:", error);
+    res.status(500).json({ message: "Error retrieving mentors", error });
+  }
+};
