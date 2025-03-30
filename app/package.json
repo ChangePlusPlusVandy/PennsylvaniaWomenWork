@@ -30,6 +30,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
+    "start:prod": "serve -s build",
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
@@ -56,6 +57,7 @@
   },
   "devDependencies": {
     "@types/react-select": "^5.0.0",
+    "serve": "^14.2.4",
     "prettier": "^3.3.3"
   }
 }

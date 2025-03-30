@@ -18,7 +18,7 @@ interface Workshop {
   mentees: string[]
 }
 
-interface MenteeInfo {
+interface ParticipantInfo {
   _id: string
   first_name: string
   last_name: string
@@ -35,11 +35,11 @@ interface MentorInfo {
   email: string
 }
 
-const MenteeInformation = () => {
+const ParticipantInformation = () => {
   const navigate = useNavigate()
   const location = useLocation()
-  const menteeId = location.state?.menteeId
-  const [mentee, setMentee] = useState<MenteeInfo | null>(null)
+  const participantId = location.state?.participantId
+  const [participant, setParticipant] = useState<ParticipantInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isModal, setIsModal] = useState(false)
@@ -49,38 +49,38 @@ const MenteeInformation = () => {
   const [mentors, setMentors] = useState<MentorInfo[]>([])
 
   useEffect(() => {
-    if (!menteeId) {
-      setError("Mentee ID is missing.")
+    if (!participantId) {
+      setError("Participant ID is missing.")
       setLoading(false)
       return
     }
 
-    const fetchMenteeData = async () => {
+    const fetchParticipantData = async () => {
       try {
-        // Fetch mentee details
-        const menteeResponse = await api.get(
-          `/api/mentee/get-mentee/${menteeId}`
+        // Fetch participant details
+        const participantResponse = await api.get(
+          `/api/mentor/get-mentor/${participantId}`
         )
-        setMentee(menteeResponse.data)
+        setParticipant(participantResponse.data)
 
-        // Fetch workshops assigned to this mentee
+        // Fetch workshops assigned to this participant
         const workshopsResponse = await api.get(
-          `/api/mentee/${menteeId}/workshops`
+          `/api/mentor/${participantId}/workshops`
         )
         setAssignedWorkshops(workshopsResponse.data)
 
-        console.log("Mentee data:", menteeResponse.data)
+        console.log("Participant data:", participantResponse.data)
         console.log("Assigned workshops:", workshopsResponse.data)
       } catch (err) {
-        setError("Failed to load mentee details.")
-        console.error("Error fetching mentee data:", err)
+        setError("Failed to load participant details.")
+        console.error("Error fetching participant data:", err)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchMenteeData()
-  }, [menteeId])
+    fetchParticipantData()
+  }, [participantId])
 
   useEffect(() => {
     const fetchWorkshops = async () => {
@@ -94,26 +94,12 @@ const MenteeInformation = () => {
     fetchWorkshops()
   }, [])
 
-  useEffect(() => {
-    // pull in all mentors
-    const fetchMentors = async () => {
-      try {
-        const response = await api.get("/api/mentor/all-mentors")
-        setMentors(response.data)
-        return response.data
-      } catch (err) {
-        console.error("Error fetching mentors:", err)
-      }
-    }
-    fetchMentors()
-  }, [menteeId])
-
   const initialValues = {
     courseName: "",
   }
 
   const validationSchema = yup.object({
-    courseName: yup.string().required("Course selection is required"),
+    courseName: yup.string().required("Workshop selection is required"),
   })
 
   const handleSubmit = async (
@@ -121,15 +107,15 @@ const MenteeInformation = () => {
     { setSubmitting }: any
   ) => {
     try {
-      if (!menteeId) {
-        throw new Error("Mentee ID is missing")
+      if (!participantId) {
+        throw new Error("Participant ID is missing")
       }
 
       console.log(
         "Assigning workshop:",
         values.courseName,
-        "to mentee:",
-        menteeId
+        "to participant:",
+        participantId
       )
 
       const payload = {
@@ -139,7 +125,7 @@ const MenteeInformation = () => {
       console.log("Sending payload:", payload)
 
       const response = await api.put(
-        `/api/mentee/${menteeId}/add-workshop`,
+        `/api/participant/${participantId}/add-workshop`,
         payload
       )
 
@@ -147,10 +133,10 @@ const MenteeInformation = () => {
 
       if (response.status === 200) {
         toast.success("Workshop assigned successfully!")
-        const updatedMentee = await api.get(
-          `/api/mentee/get-mentee/${menteeId}`
+        const updatedParticipant = await api.get(
+          `/api/participant/get-participant/${participantId}`
         )
-        setMentee(updatedMentee.data)
+        setParticipant(updatedParticipant.data)
         setIsModal(false)
       } else {
         throw new Error("Failed to assign workshop")
@@ -163,12 +149,12 @@ const MenteeInformation = () => {
     }
   }
 
-  // Compute initials for the mentee's avatar
+  // Compute initials for the participant's avatar
   const getInitials = () => {
-    if (!mentee) return ""
+    if (!participant) return ""
     return (
-      mentee.first_name.charAt(0).toUpperCase() +
-      mentee.last_name.charAt(0).toUpperCase()
+      participant.first_name.charAt(0).toUpperCase() +
+      participant.last_name.charAt(0).toUpperCase()
     )
   }
 
@@ -194,11 +180,11 @@ const MenteeInformation = () => {
             <Icon glyph="chevron-left" className="Text-colorHover--teal-1000" />
           </div>
 
-          {/* Column 1: Mentee Information Block */}
+          {/* Column 1: Participant Information Block */}
           <div className="col-lg-4 mb-4">
             <div className="Block">
-              <div className="Block-header">Mentee Information</div>
-              <div className="Block-subtitle">Mentee Details</div>
+              <div className="Block-header">Participant Information</div>
+              <div className="Block-subtitle">Participant Details</div>
               <div className="Block-content">
                 <div className="Profile-avatar">
                   <div className="Profile-initials">{getInitials()}</div>
@@ -206,27 +192,27 @@ const MenteeInformation = () => {
                 <div className="Profile-field">
                   <div className="Profile-field-label">Name:</div>
                   <div>
-                    {mentee?.first_name} {mentee?.last_name}
+                    {participant?.first_name} {participant?.last_name}
                   </div>
                 </div>
                 <div className="Profile-field">
                   <div className="Profile-field-label">Role:</div>
-                  <div>{mentee?.role}</div>
+                  <div>{participant?.role}</div>
                 </div>
                 <div className="Profile-field">
                   <div className="Profile-field-label">Email:</div>
-                  <div>{mentee?.email}</div>
+                  <div>{participant?.email}</div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Column 2: Mentee Courses */}
+          {/* Column 2: Participant Courses */}
           <div className="col-lg-4 mb-4">
             <div className="Block">
-              <div className="Block-header">Mentee Courses</div>
+              <div className="Block-header">Participant Courses</div>
               <div className="Block-subtitle">
-                Courses assigned to {mentee?.first_name}
+                Courses assigned to {participant?.first_name}
               </div>
               {assignedWorkshops.length > 0 ? (
                 <div className="Flex-col">
@@ -244,7 +230,7 @@ const MenteeInformation = () => {
                   className="Button Button-color--blue-1000 Width--100"
                   onClick={() => setIsModal(true)}
                 >
-                  Assign New Course
+                  Assign New Workshop
                 </button>
               )}
             </div>
@@ -255,7 +241,7 @@ const MenteeInformation = () => {
             <div className="Block">
               <div className="Block-header">Upcoming Meetings</div>
               <div className="Block-subtitle">
-                Your meetings with {mentee?.first_name}
+                Your meetings with {participant?.first_name}
               </div>
               {/* Example static meeting item */}
               <div className="d-flex align-items-center mb-3">
@@ -283,8 +269,8 @@ const MenteeInformation = () => {
 
       {isModal && (
         <Modal
-          header="Assign New Course"
-          subheader="Add a new course for this mentee"
+          header="Assign New Workshop"
+          subheader="Add a new workshop for this participant"
           action={() => setIsModal(false)}
           body={
             <Formik
@@ -331,4 +317,4 @@ const MenteeInformation = () => {
   )
 }
 
-export default MenteeInformation
+export default ParticipantInformation
