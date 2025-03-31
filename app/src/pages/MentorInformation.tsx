@@ -1,169 +1,169 @@
-import React, { useState, useEffect } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
-import Navbar from "../components/Navbar"
-import Icon from "../components/Icon"
-import Modal from "../components/Modal"
-import { Formik, Form, Field } from "formik"
-import * as yup from "yup"
-import { api } from "../api"
-import { useUser } from "../contexts/UserContext"
-import { tier1Roles } from "../utils/roles"
-import { toast } from "react-hot-toast"
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import Icon from "../components/Icon";
+import Modal from "../components/Modal";
+import { Formik, Form, Field } from "formik";
+import * as yup from "yup";
+import { api } from "../api";
+import { useUser } from "../contexts/UserContext";
+import { tier1Roles } from "../utils/roles";
+import { toast } from "react-hot-toast";
 
 interface Workshop {
-  _id: string
-  name: string
-  description: string
-  mentor: string
-  mentees: string[]
+  _id: string;
+  name: string;
+  description: string;
+  mentor: string;
+  mentees: string[];
 }
 
 interface ParticipantInfo {
-  _id: string
-  first_name: string
-  last_name: string
-  email: string
-  role: string
-  mentor?: string
-  workshops: string[] // Array of workshop names
+  _id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: string;
+  mentor?: string;
+  workshops: string[]; // Array of workshop names
 }
 
 interface MentorInfo {
-  _id: string
-  first_name: string
-  last_name: string
-  email: string
+  _id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
 }
 
 const ParticipantInformation = () => {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const participantId = location.state?.participantId
-  const [participant, setParticipant] = useState<ParticipantInfo | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isModal, setIsModal] = useState(false)
-  const { user } = useUser()
-  const [availableWorkshops, setAvailableWorkshops] = useState([])
-  const [assignedWorkshops, setAssignedWorkshops] = useState<Workshop[]>([])
-  const [mentors, setMentors] = useState<MentorInfo[]>([])
+  const navigate = useNavigate();
+  const location = useLocation();
+  const participantId = location.state?.participantId;
+  const [participant, setParticipant] = useState<ParticipantInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isModal, setIsModal] = useState(false);
+  const { user } = useUser();
+  const [availableWorkshops, setAvailableWorkshops] = useState([]);
+  const [assignedWorkshops, setAssignedWorkshops] = useState<Workshop[]>([]);
+  const [mentors, setMentors] = useState<MentorInfo[]>([]);
 
   useEffect(() => {
     if (!participantId) {
-      setError("Participant ID is missing.")
-      setLoading(false)
-      return
+      setError("Participant ID is missing.");
+      setLoading(false);
+      return;
     }
 
     const fetchParticipantData = async () => {
       try {
         // Fetch participant details
         const participantResponse = await api.get(
-          `/api/mentor/get-mentor/${participantId}`
-        )
-        setParticipant(participantResponse.data)
+          `/api/mentor/get-mentor/${participantId}`,
+        );
+        setParticipant(participantResponse.data);
 
         // Fetch workshops assigned to this participant
         const workshopsResponse = await api.get(
-          `/api/mentor/${participantId}/workshops`
-        )
-        setAssignedWorkshops(workshopsResponse.data)
+          `/api/mentor/${participantId}/workshops`,
+        );
+        setAssignedWorkshops(workshopsResponse.data);
 
-        console.log("Participant data:", participantResponse.data)
-        console.log("Assigned workshops:", workshopsResponse.data)
+        console.log("Participant data:", participantResponse.data);
+        console.log("Assigned workshops:", workshopsResponse.data);
       } catch (err) {
-        setError("Failed to load participant details.")
-        console.error("Error fetching participant data:", err)
+        setError("Failed to load participant details.");
+        console.error("Error fetching participant data:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchParticipantData()
-  }, [participantId])
+    fetchParticipantData();
+  }, [participantId]);
 
   useEffect(() => {
     const fetchWorkshops = async () => {
       try {
-        const response = await api.get("/api/workshop/get-workshops")
-        setAvailableWorkshops(response.data)
+        const response = await api.get("/api/workshop/get-workshops");
+        setAvailableWorkshops(response.data);
       } catch (err) {
-        console.error("Error fetching workshops:", err)
+        console.error("Error fetching workshops:", err);
       }
-    }
-    fetchWorkshops()
-  }, [])
+    };
+    fetchWorkshops();
+  }, []);
 
   const initialValues = {
     courseName: "",
-  }
+  };
 
   const validationSchema = yup.object({
     courseName: yup.string().required("Workshop selection is required"),
-  })
+  });
 
   const handleSubmit = async (
     values: typeof initialValues,
-    { setSubmitting }: any
+    { setSubmitting }: any,
   ) => {
     try {
       if (!participantId) {
-        throw new Error("Participant ID is missing")
+        throw new Error("Participant ID is missing");
       }
 
       console.log(
         "Assigning workshop:",
         values.courseName,
         "to participant:",
-        participantId
-      )
+        participantId,
+      );
 
       const payload = {
         workshopId: values.courseName,
-      }
+      };
 
-      console.log("Sending payload:", payload)
+      console.log("Sending payload:", payload);
 
       const response = await api.put(
         `/api/participant/${participantId}/add-workshop`,
-        payload
-      )
+        payload,
+      );
 
-      console.log("Assignment response:", response)
+      console.log("Assignment response:", response);
 
       if (response.status === 200) {
-        toast.success("Workshop assigned successfully!")
+        toast.success("Workshop assigned successfully!");
         const updatedParticipant = await api.get(
-          `/api/participant/get-participant/${participantId}`
-        )
-        setParticipant(updatedParticipant.data)
-        setIsModal(false)
+          `/api/participant/get-participant/${participantId}`,
+        );
+        setParticipant(updatedParticipant.data);
+        setIsModal(false);
       } else {
-        throw new Error("Failed to assign workshop")
+        throw new Error("Failed to assign workshop");
       }
     } catch (error) {
-      console.error("Error assigning workshop:", error)
-      toast.error("Failed to assign workshop")
+      console.error("Error assigning workshop:", error);
+      toast.error("Failed to assign workshop");
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   // Compute initials for the participant's avatar
   const getInitials = () => {
-    if (!participant) return ""
+    if (!participant) return "";
     return (
       participant.first_name.charAt(0).toUpperCase() +
       participant.last_name.charAt(0).toUpperCase()
-    )
-  }
+    );
+  };
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   if (error) {
-    return <div>{error}</div>
+    return <div>{error}</div>;
   }
 
   return (
@@ -314,7 +314,7 @@ const ParticipantInformation = () => {
         />
       )}
     </>
-  )
-}
+  );
+};
 
-export default ParticipantInformation
+export default ParticipantInformation;

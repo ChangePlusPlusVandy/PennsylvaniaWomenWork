@@ -1,183 +1,183 @@
-import React, { useState, useEffect } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
-import Navbar from "../components/Navbar"
-import Icon from "../components/Icon"
-import Modal from "../components/Modal"
-import { Formik, Form, Field } from "formik"
-import * as yup from "yup"
-import { api } from "../api"
-import { useUser } from "../contexts/UserContext"
-import { tier1Roles } from "../utils/roles"
-import { toast } from "react-hot-toast"
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import Icon from "../components/Icon";
+import Modal from "../components/Modal";
+import { Formik, Form, Field } from "formik";
+import * as yup from "yup";
+import { api } from "../api";
+import { useUser } from "../contexts/UserContext";
+import { tier1Roles } from "../utils/roles";
+import { toast } from "react-hot-toast";
 
 interface Workshop {
-  _id: string
-  name: string
-  description: string
-  mentor: string
-  mentees: string[]
+  _id: string;
+  name: string;
+  description: string;
+  mentor: string;
+  mentees: string[];
 }
 
 interface MenteeInfo {
-  _id: string
-  first_name: string
-  last_name: string
-  email: string
-  role: string
-  mentor?: string
-  workshops: string[] // Array of workshop names
+  _id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: string;
+  mentor?: string;
+  workshops: string[]; // Array of workshop names
 }
 
 interface MentorInfo {
-  _id: string
-  first_name: string
-  last_name: string
-  email: string
+  _id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
 }
 
 const MenteeInformation = () => {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const menteeId = location.state?.menteeId
-  const [mentee, setMentee] = useState<MenteeInfo | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isModal, setIsModal] = useState(false)
-  const { user } = useUser()
-  const [availableWorkshops, setAvailableWorkshops] = useState([])
-  const [assignedWorkshops, setAssignedWorkshops] = useState<Workshop[]>([])
-  const [mentors, setMentors] = useState<MentorInfo[]>([])
+  const navigate = useNavigate();
+  const location = useLocation();
+  const menteeId = location.state?.menteeId;
+  const [mentee, setMentee] = useState<MenteeInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isModal, setIsModal] = useState(false);
+  const { user } = useUser();
+  const [availableWorkshops, setAvailableWorkshops] = useState([]);
+  const [assignedWorkshops, setAssignedWorkshops] = useState<Workshop[]>([]);
+  const [mentors, setMentors] = useState<MentorInfo[]>([]);
 
   useEffect(() => {
     if (!menteeId) {
-      setError("Mentee ID is missing.")
-      setLoading(false)
-      return
+      setError("Mentee ID is missing.");
+      setLoading(false);
+      return;
     }
 
     const fetchMenteeData = async () => {
       try {
         // Fetch mentee details
         const menteeResponse = await api.get(
-          `/api/mentee/get-mentee/${menteeId}`
-        )
-        setMentee(menteeResponse.data)
+          `/api/mentee/get-mentee/${menteeId}`,
+        );
+        setMentee(menteeResponse.data);
 
         // Fetch workshops assigned to this mentee
         const workshopsResponse = await api.get(
-          `/api/mentee/${menteeId}/workshops`
-        )
-        setAssignedWorkshops(workshopsResponse.data)
+          `/api/mentee/${menteeId}/workshops`,
+        );
+        setAssignedWorkshops(workshopsResponse.data);
 
-        console.log("Mentee data:", menteeResponse.data)
-        console.log("Assigned workshops:", workshopsResponse.data)
+        console.log("Mentee data:", menteeResponse.data);
+        console.log("Assigned workshops:", workshopsResponse.data);
       } catch (err) {
-        setError("Failed to load mentee details.")
-        console.error("Error fetching mentee data:", err)
+        setError("Failed to load mentee details.");
+        console.error("Error fetching mentee data:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchMenteeData()
-  }, [menteeId])
+    fetchMenteeData();
+  }, [menteeId]);
 
   useEffect(() => {
     const fetchWorkshops = async () => {
       try {
-        const response = await api.get("/api/workshop/get-workshops")
-        setAvailableWorkshops(response.data)
+        const response = await api.get("/api/workshop/get-workshops");
+        setAvailableWorkshops(response.data);
       } catch (err) {
-        console.error("Error fetching workshops:", err)
+        console.error("Error fetching workshops:", err);
       }
-    }
-    fetchWorkshops()
-  }, [])
+    };
+    fetchWorkshops();
+  }, []);
 
   useEffect(() => {
     // pull in all mentors
     const fetchMentors = async () => {
       try {
-        const response = await api.get("/api/mentor/all-mentors")
-        setMentors(response.data)
-        return response.data
+        const response = await api.get("/api/mentor/all-mentors");
+        setMentors(response.data);
+        return response.data;
       } catch (err) {
-        console.error("Error fetching mentors:", err)
+        console.error("Error fetching mentors:", err);
       }
-    }
-    fetchMentors()
-  }, [menteeId])
+    };
+    fetchMentors();
+  }, [menteeId]);
 
   const initialValues = {
     courseName: "",
-  }
+  };
 
   const validationSchema = yup.object({
     courseName: yup.string().required("Course selection is required"),
-  })
+  });
 
   const handleSubmit = async (
     values: typeof initialValues,
-    { setSubmitting }: any
+    { setSubmitting }: any,
   ) => {
     try {
       if (!menteeId) {
-        throw new Error("Mentee ID is missing")
+        throw new Error("Mentee ID is missing");
       }
 
       console.log(
         "Assigning workshop:",
         values.courseName,
         "to mentee:",
-        menteeId
-      )
+        menteeId,
+      );
 
       const payload = {
         workshopId: values.courseName,
-      }
+      };
 
-      console.log("Sending payload:", payload)
+      console.log("Sending payload:", payload);
 
       const response = await api.put(
         `/api/mentee/${menteeId}/add-workshop`,
-        payload
-      )
+        payload,
+      );
 
-      console.log("Assignment response:", response)
+      console.log("Assignment response:", response);
 
       if (response.status === 200) {
-        toast.success("Workshop assigned successfully!")
+        toast.success("Workshop assigned successfully!");
         const updatedMentee = await api.get(
-          `/api/mentee/get-mentee/${menteeId}`
-        )
-        setMentee(updatedMentee.data)
-        setIsModal(false)
+          `/api/mentee/get-mentee/${menteeId}`,
+        );
+        setMentee(updatedMentee.data);
+        setIsModal(false);
       } else {
-        throw new Error("Failed to assign workshop")
+        throw new Error("Failed to assign workshop");
       }
     } catch (error) {
-      console.error("Error assigning workshop:", error)
-      toast.error("Failed to assign workshop")
+      console.error("Error assigning workshop:", error);
+      toast.error("Failed to assign workshop");
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   // Compute initials for the mentee's avatar
   const getInitials = () => {
-    if (!mentee) return ""
+    if (!mentee) return "";
     return (
       mentee.first_name.charAt(0).toUpperCase() +
       mentee.last_name.charAt(0).toUpperCase()
-    )
-  }
+    );
+  };
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   if (error) {
-    return <div>{error}</div>
+    return <div>{error}</div>;
   }
 
   return (
@@ -328,7 +328,7 @@ const MenteeInformation = () => {
         />
       )}
     </>
-  )
-}
+  );
+};
 
-export default MenteeInformation
+export default MenteeInformation;
