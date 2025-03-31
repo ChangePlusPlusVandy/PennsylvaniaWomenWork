@@ -47,6 +47,7 @@ const MenteeInformation = () => {
   const [availableWorkshops, setAvailableWorkshops] = useState([])
   const [assignedWorkshops, setAssignedWorkshops] = useState<Workshop[]>([])
   const [mentors, setMentors] = useState<MentorInfo[]>([])
+  const [isAssignMentorModal, setIsAssignMentorModal] = useState(false)
 
   useEffect(() => {
     if (!menteeId) {
@@ -162,6 +163,19 @@ const MenteeInformation = () => {
       setSubmitting(false)
     }
   }
+  const mentorInitialValues = {
+    mentorName: "",
+  }
+
+  const mentorValidationSchema = yup.object({
+    mentorName: yup.string().required("Volunteer selection is required"),
+  })
+  const handleMentorSubmit = async (
+    values: typeof mentorInitialValues,
+    { setSubmitting }: any
+  ) => {
+    console.log("Mentor values:", values)
+  }
 
   // Compute initials for the mentee's avatar
   const getInitials = () => {
@@ -216,6 +230,21 @@ const MenteeInformation = () => {
                 <div className="Profile-field">
                   <div className="Profile-field-label">Email:</div>
                   <div>{mentee?.email}</div>
+                </div>
+                <div className="Profile-field">
+                  {mentee?.mentor ? (
+                    <>
+                      <div className="Profile-field-label">Mentor:</div>
+                      <div>{mentee?.mentor}</div>
+                    </>
+                  ) : (
+                    <div
+                      className="Button Button-color--blue-1000 Width--100"
+                      onClick={() => setIsAssignMentorModal(true)}
+                    >
+                      Assign Mentor
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -280,7 +309,51 @@ const MenteeInformation = () => {
           </div>
         </div>
       </div>
+      {isAssignMentorModal && (
+        <Modal
+          header={`Assign a volunteer for ${mentee?.first_name} ${mentee?.last_name}`}
+          action={() => setIsAssignMentorModal(false)}
+          body={
+            <Formik
+              initialValues={mentorInitialValues}
+              validationSchema={mentorValidationSchema}
+              onSubmit={handleMentorSubmit}
+            >
+              {({ errors, touched, isSubmitting }) => (
+                <Form>
+                  <div className="Form-group">
+                    <label htmlFor="mentorName">Select Volunteer</label>
+                    <Field
+                      as="select"
+                      className="Form-input-box"
+                      id="mentorName"
+                      name="mentorName"
+                    >
+                    <option value="">Select a volunteer...</option>
+                    {mentors.map((mentor: MentorInfo) => (
+                      <option key={mentor._id} value={mentor._id}>
+                        {mentor.first_name} {mentor.last_name}
+                      </option>
+                    ))}
+                    </Field>
+                    {errors.mentorName && touched.mentorName && (
+                      <div className="Form-error">{errors.mentorName}</div>
+                    )}
+                  </div>
 
+                  <button
+                    type="submit"
+                    className="Button Button-color--teal-1000 Width--100"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Assigning..." : "Assign Volunteer"}
+                  </button>
+                </Form>
+              )}
+            </Formik>
+          }
+        />
+      )}
       {isModal && (
         <Modal
           header="Assign New Course"
