@@ -12,15 +12,39 @@ import makeAnimated from "react-select/animated";
 
 const animatedComponents = makeAnimated();
 
-const initialValues = {
+interface FormValues {
+  name: string;
+  description: string;
+  imageUpload: File | null;
+}
+
+const initialValues: FormValues = {
   name: "",
   description: "",
+  imageUpload: null,
 };
 
 // Validation schema using Yup
 const validationSchema = Yup.object().shape({
   name: Yup.string().required("Name is required"),
   description: Yup.string().required("Description is required"),
+  imageUpload: Yup.mixed()
+    .test("fileSize", "File size is too large", (value) => {
+      if (!value) return true;
+
+      const maxSize = 2 * 1024 * 1024; // 2 MB
+      return (value as File).size <= maxSize;
+    })
+    .test(
+      "fileType",
+      "Unsupported file format. Only JPEG and PNG are allowed.",
+      (value) => {
+        if (!value) return true;
+
+        const supportedFormats = ["image/jpeg", "image/png"];
+        return supportedFormats.includes((value as File).type);
+      }
+    ),
 });
 
 const CreateWorkshop = () => {
@@ -66,28 +90,31 @@ const CreateWorkshop = () => {
   ) => {
     setSubmitting(true);
     try {
-      // await Promise.all(
-      //   selectedFiles.map(async (fileData) => {
-      //     // Get pre-signed URL for the file
-      //     console.log("File data:", fileData.file.name, fileData.file.type);
-      //     const response = await api.get(
-      //       `/api/workshop/generate-presigned-url/${encodeURIComponent(fileData.file.name)}`,
-      //     );
+      let coverImageS3id = null;
 
-      //     const { url, objectKey } = response.data;
+      if (values.imageUpload) {
+        // Get presigned URL for the cover image
+        const coverImageResponse = await api.get(
+          `/api/workshop/generate-presigned-url/${encodeURIComponent(values.imageUpload.name)}`
+        );
 
-      //     const uploadResponse = await fetch(url, {
-      //       method: "PUT",
-      //       body: fileData.file,
-      //       headers: { "Content-Type": fileData.file.type },
-      //     });
-      //     console.log("Upload response:", uploadResponse);
-      //   }),
-      // );
-      // Create the workshop:
+        const { url: coverImageUrl, objectKey: coverImageObjectKey } =
+          coverImageResponse.data;
+
+        // Upload the cover image to S3
+        await fetch(coverImageUrl, {
+          method: "PUT",
+          body: values.imageUpload,
+          headers: { "Content-Type": values.imageUpload.type },
+        });
+
+        coverImageS3id = coverImageObjectKey;
+      }
+
       const payload = {
         name: values.name,
         description: values.description,
+        coverImageS3id,
       };
       // const { data: workshop } = await api.post("/api/create-workshop", payload);
       const { data: workshop } = await api.post(
@@ -331,7 +358,7 @@ const CreateWorkshop = () => {
               validationSchema={validationSchema}
               onSubmit={handleSubmit}
             >
-              {({ errors, touched, isSubmitting }) => (
+              {({ errors, touched, isSubmitting, setFieldValue }) => (
                 <Form>
                   <div className="Form-group">
                     <label htmlFor="name">Workshop Name:</label>
@@ -355,6 +382,28 @@ const CreateWorkshop = () => {
                     />
                     {errors.description && touched.description && (
                       <div className="Form-error">{errors.description}</div>
+                    )}
+                  </div>
+                  <div className="Form-group">
+                    <label htmlFor="imageUpload">
+                      Workshop cover Image (optional):
+                    </label>
+                    <input
+                      type="file"
+                      id="imageUpload"
+                      name="imageUpload"
+                      className="Form-input-box"
+                      accept="image/*"
+                      onChange={(event) => {
+                        if (event.currentTarget.files) {
+                          const file = event.currentTarget.files[0];
+                          console.log("Selected file:", file);
+                          setFieldValue("imageUpload", file);
+                        }
+                      }}
+                    />
+                    {errors.imageUpload && touched.imageUpload && (
+                      <div className="Form-error">{errors.imageUpload}</div>
                     )}
                   </div>
                   {fileDetails.length > 0 && (

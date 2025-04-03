@@ -42,15 +42,19 @@ export const generatePresignedUrl = async (req: Request, res: Response) => {
 };
 
 export const createWorkshop = async (req: Request, res: Response) => {
-  const { name, description, s3id } = req.body;
+  const { name, description, s3id, coverImageS3id } = req.body;
 
   if (!name || !description) {
     return res.status(400).json({ message: "Missing required fields" });
   }
 
   try {
-    // Create a new workshop with
-    const newWorkshop = new Workshop({ name, description, s3id });
+    const newWorkshop = new Workshop({
+      name,
+      description,
+      s3id,
+      coverImageS3id,
+    });
     const savedWorkshop = await newWorkshop.save();
 
     // Success:

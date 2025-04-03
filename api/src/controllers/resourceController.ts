@@ -68,7 +68,7 @@ export const generateRetrievalURL = async (req: Request, res: Response) => {
     const signedUrl = await s3.getSignedUrlPromise("getObject", {
       Bucket: bucketName,
       Key: objectId,
-      Expires: 3600,
+      Expires: 72 * 60 * 60, // 72 hours
     });
 
     res.status(200).json({ signedUrl });

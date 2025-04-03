@@ -23,7 +23,10 @@ interface CourseInformationElements {
   createdAt: string
   mentor: string
   mentee: string
+  coverImageS3id: string
 }
+
+type ImageUrlMap = Record<string, string | null>;
 
 const MentorDashboard = () => {
   const navigate = useNavigate()
@@ -37,6 +40,7 @@ const MentorDashboard = () => {
   const { user } = useUser()
   const [workshops, setWorkshops] = useState<CourseInformationElements[]>([])
   const userId = user?._id
+  const [imageUrls, setImageUrls] = useState<ImageUrlMap>({});
   useEffect(() => {
     if (!user) {
       return
@@ -94,15 +98,41 @@ const MentorDashboard = () => {
       try {
         const response = await api.get(`/api/workshop/get-workshops`)
         setWorkshops(response.data)
+        fetchImageUrls(response.data)
       } catch (err) {
         setError("Unable to fetch workshops.")
       }
-    }
+    };
     fetchWorkshops()
   }, [])
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+
+  const fetchImageUrls = async (workshopsData: any) => {
+    const urls: ImageUrlMap = {};
+
+    await Promise.all(
+      workshopsData.map(async (item: any) => {
+        if (item.coverImageS3id) {
+          try {
+            const res = await api.get(
+              `/api/resource/getURL/${item.coverImageS3id}`
+            );
+            urls[item.coverImageS3id] = res.data.signedUrl;
+          } catch (error) {
+            console.error(
+              `Error fetching image for ${item.coverImageS3id}:`,
+              error
+            );
+            urls[item.coverImageS3id] = null;
+          }
+        }
+      })
+    );
+
+    setImageUrls(urls);
+  };
 
   const eventsByMonth: { [key: string]: EventData[] } = events
     .filter((event) => new Date(event.date) >= today)
@@ -272,7 +302,19 @@ const MentorDashboard = () => {
                         className="Mentor--card"
                         onClick={() => handleClickWorkshop(item._id)}
                       >
-                        <div className="Mentor--card-color Background-color--teal-1000" />
+                        {imageUrls[item.coverImageS3id] ? (
+                          <div
+                            className="Mentor--card-image"
+                            style={{
+                              backgroundImage: `url(${imageUrls[item.coverImageS3id]})`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                              height: "120px",
+                            }}
+                          />
+                        ) : (
+                          <div className="Mentor--card-color Background-color--teal-1000" />
+                        )}
                         <div className="Padding--10">
                           <div className="Mentor--card-name">{item.name}</div>
                           <div className="Mentor--card-description">
