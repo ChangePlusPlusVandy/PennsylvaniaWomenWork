@@ -92,7 +92,8 @@ const Navbar = (): ReactElement => {
             <div
               className="Button Button-color--teal-1000"
               onClick={() => {
-                logout();
+                const returnTo = window.location.origin + "/logout";
+                logout({ logoutParams: { returnTo } });
               }}
             >
               Log Out

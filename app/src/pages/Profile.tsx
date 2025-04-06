@@ -53,7 +53,8 @@ const Profile = () => {
               <div
                 className="Button Button-color--blue-1000 Margin-top--20"
                 onClick={() => {
-                  logout();
+                  const returnTo = window.location.origin + "/logout";
+                  logout({ logoutParams: { returnTo } });
                 }}
               >
                 Log Out
