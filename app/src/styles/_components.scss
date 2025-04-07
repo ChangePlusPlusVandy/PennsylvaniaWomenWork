@@ -188,3 +188,40 @@
   font-size: 0.9rem;
   color: #777;
 }
+
+.FolderCard {
+  background-color: var(--pww-color-light-1000);
+  border-radius: var(--pww-border-radius-8);
+  box-shadow: var(--pww-shadow-dark);
+  border: 1px solid var(--pww-color-gray-200);
+  height: fit-content;
+  overflow: hidden;
+  cursor: pointer;
+  height: fit-content;
+
+  &:hover {
+    cursor: pointer;
+    box-shadow: 0 0 3px 3px var(--pww-color-light-500);
+    transform: scale(1.02);
+    transition: box-shadow 0.3s ease, transform 0.3s ease;
+  }
+
+  &-color {
+    height: 75px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &-name {
+    font-size: var(--pww-font-size-20);
+    font-weight: 800;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--pww-color-gray-200);
+    margin-bottom: 10px;
+  }
+
+  &-description {
+    color: var(--pww-color-gray-700);
+    font-size: var(--pww-font-size-16);
+  }
+}

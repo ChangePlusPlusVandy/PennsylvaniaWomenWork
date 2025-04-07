@@ -4,6 +4,7 @@ import Navbar from "../components/Navbar"
 import Icon from "../components/Icon"
 import { api } from "../api"
 import toast from "react-hot-toast"
+import ConfirmActionModal from "../components/ConfirmActionModal"
 
 interface Mentee {
   _id: string
@@ -28,6 +29,7 @@ const VolunteerInformation = () => {
   const [mentor, setMentor] = useState<Mentor | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
 
   useEffect(() => {
     if (!mentorId) {
@@ -64,10 +66,11 @@ const VolunteerInformation = () => {
     try {
       await api.delete(`/api/mentor/delete-mentor/${mentorId}`)
       navigate("/home")
-    } catch (err) {
-      setError("Failed to delete mentor.")
-    } finally {
       toast.success("Mentor deleted successfully.")
+    } catch (err) {
+      toast.error("Failed to delete mentor.")
+    } finally {
+      setShowDeleteModal(false)
     }
   }
 
@@ -76,6 +79,20 @@ const VolunteerInformation = () => {
 
   return (
     <>
+      {showDeleteModal && (
+        <ConfirmActionModal
+          isOpen={showDeleteModal}
+          title="Delete Volunteer"
+          message="Are you sure you want to delete this volunteer? This action cannot be undone."
+          confirmLabel="Delete"
+          onConfirm={() => {
+            handleDeleteMentor(mentorId)
+            setShowDeleteModal(false)
+          }}
+          onCancel={() => setShowDeleteModal(false)}
+          isDanger={true}
+        />
+      )}
       <Navbar />
       <div className="container mt-4">
         <div className="row">
@@ -90,8 +107,8 @@ const VolunteerInformation = () => {
           {/* Column 1: Mentor Info */}
           <div className="col-lg-4 mb-4">
             <div className="Block">
-              <div className="Block-header">Mentor Information</div>
-              <div className="Block-subtitle">Mentor Details</div>
+              <div className="Block-header">Volunteer Information</div>
+              <div className="Block-subtitle">Volunteer Details</div>
               <div className="Block-content">
                 <div className="Profile-avatar">
                   <div className="Profile-initials">{getInitials()}</div>
@@ -143,7 +160,7 @@ const VolunteerInformation = () => {
               <button
                 className="Button Button-color--red-1000 Button--hollow Width--100"
                 onClick={() => {
-                  handleDeleteMentor(mentorId)
+                  setShowDeleteModal(true)
                 }}
               >
                 Delete Volunteer

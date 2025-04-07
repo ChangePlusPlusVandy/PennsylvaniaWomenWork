@@ -14,6 +14,7 @@ import AsyncSubmit from "../components/AsyncSubmit"
 import CreatableSelect from "react-select/creatable"
 import makeAnimated from "react-select/animated"
 import { toast } from "react-hot-toast"
+import ConfirmActionModal from "../components/ConfirmActionModal"
 
 const animatedComponents = makeAnimated()
 
@@ -382,31 +383,14 @@ const WorkshopInformation = () => {
               </div>
             </div>
             {showDeleteModal && (
-              <Modal
-                header="Delete Folder"
-                subheader="Are you sure you want to delete this folder?"
-                body={
-                  <div className="Flex-row" style={{ gap: "10px" }}>
-                    <button
-                      className="Button Button-color--gray-1000 Button--hollow"
-                      onClick={() => setShowDeleteModal(false)}
-                      style={{ flexGrow: 1 }}
-                    >
-                      Cancel
-                    </button>
-
-                    <button
-                      className="Button Button-color--red-1000"
-                      style={{ flexGrow: 1 }}
-                      onClick={() => {
-                        deleteWorkshop()
-                      }}
-                    >
-                      Delete
-                    </button>
-                  </div>
-                }
-                action={() => setShowDeleteModal(false)}
+              <ConfirmActionModal
+                isOpen={showDeleteModal}
+                title="Delete Folder"
+                message="Are you sure you want to delete this folder?"
+                confirmLabel="Delete"
+                onConfirm={deleteWorkshop}
+                onCancel={() => setShowDeleteModal(false)}
+                isDanger
               />
             )}
             <div className="Block-subtitle">{workshop?.description}</div>

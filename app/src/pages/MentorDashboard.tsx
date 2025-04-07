@@ -8,6 +8,7 @@ import { useUser } from "../contexts/UserContext"
 import { api } from "../api"
 import { tier1Roles, tier2Roles, tier3Roles } from "../utils/roles"
 import ParticipantCard from "../components/ParticipantCard"
+import FolderCard from "../components/FolderCard"
 
 interface Mentee {
   _id: string
@@ -375,30 +376,12 @@ const MentorDashboard = () => {
                 <div className="row gx-3 gy-3">
                   {workshops.map((item) => (
                     <div className="col-lg-4" key={item._id}>
-                      <div
-                        className="Mentor--card"
+                      <FolderCard
+                        name={item.name}
+                        description={item.description}
+                        imageUrl={imageUrls[item.coverImageS3id]}
                         onClick={() => handleClickWorkshop(item._id)}
-                      >
-                        {imageUrls[item.coverImageS3id] ? (
-                          <div
-                            className="Mentor--card-image"
-                            style={{
-                              backgroundImage: `url(${imageUrls[item.coverImageS3id]})`,
-                              backgroundSize: "cover",
-                              backgroundPosition: "center",
-                              height: "120px",
-                            }}
-                          />
-                        ) : (
-                          <div className="Mentor--card-color Background-color--teal-1000" />
-                        )}
-                        <div className="Padding--10">
-                          <div className="Mentor--card-name">{item.name}</div>
-                          <div className="Mentor--card-description">
-                            {item.description}
-                          </div>
-                        </div>
-                      </div>
+                      />
                     </div>
                   ))}
                 </div>
