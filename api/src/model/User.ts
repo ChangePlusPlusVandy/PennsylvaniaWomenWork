@@ -5,8 +5,8 @@ const userSchema = new mongoose.Schema({
   email: String,
   username: String,
   role: String,
-  firstName: String,
-  lastName: String,
+  first_name: String,
+  last_name: String,
   mentor_id: String,
   workshops: [{ type: mongoose.Schema.Types.ObjectId, ref: "Workshop" }], // Store workshop IDs
 });

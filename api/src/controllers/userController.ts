@@ -74,7 +74,7 @@ export const sendEmail = async (req: Request, res: Response) => {
       );
     }
 
-    const { email, name, role } = req.body;
+    const { email, firstName, lastName, role } = req.body;
 
     sgMail.setApiKey(SENDGRID_API_KEY);
 
@@ -100,11 +100,28 @@ export const sendEmail = async (req: Request, res: Response) => {
       from: SEND_GRID_TEST_EMAIL,
       templateId: templateId,
       dynamicTemplateData: {
-        name: name,
+        name: `${firstName} ${lastName}`,
         password_reset_link: Auth0ResetLink,
         app_url: PUBLIC_APP_URL,
       },
     });
+
+    // wait 2 seconds to allow auth0 trigger to finish
+    //  workaround to ensure the Auth0 script creates the user in mongo before we try to update it
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // update user to the database
+    const userId = newUser.data.user_id;
+
+    console.log("Adding user with:", userId, firstName, lastName, role);
+
+    const updatedUser = await User.findOneAndUpdate(
+      { user_id: userId },
+      { first_name: firstName, last_name: lastName, role: role },
+      { new: true, runValidators: true } 
+    );
+
+    console.log("Updated user:", updatedUser);
 
     return res.status(200).json({ message: "Email successfully sent" });
   } catch (err: any) {
@@ -164,8 +181,8 @@ export const getCurrentUser = async (req: Request, res: Response) => {
       _id: user._id.toString(), // Convert MongoDB ObjectId to string
       username: user.username,
       role: user.role,
-      firstName: user.firstName,
-      lastName: user.lastName,
+      first_name: user.first_name,
+      last_name: user.last_name,
     });
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -176,8 +193,8 @@ export const getCurrentUser = async (req: Request, res: Response) => {
 export const updateUser = async (req: Request, res: Response) => {
   const { userId } = req.params;
   const allowedFields = [
-    "firstName",
-    "lastName",
+    "first_name",
+    "last_name",
     "username",
     "email",
     "role",
@@ -202,8 +219,8 @@ export const updateUser = async (req: Request, res: Response) => {
         .json({ message: "No valid fields provided for update" });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
+    const updatedUser = await User.findOneAndUpdate(
+      { user_id: userId },
       { $set: updateData },
       { new: true, runValidators: true }, // Return updated document and validate
     );
