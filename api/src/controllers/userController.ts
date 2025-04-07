@@ -108,7 +108,7 @@ export const sendEmail = async (req: Request, res: Response) => {
 
     // wait 2 seconds to allow auth0 trigger to finish
     //  workaround to ensure the Auth0 script creates the user in mongo before we try to update it
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     // update user to the database
     const userId = newUser.data.user_id;
@@ -118,7 +118,7 @@ export const sendEmail = async (req: Request, res: Response) => {
     const updatedUser = await User.findOneAndUpdate(
       { user_id: userId },
       { first_name: firstName, last_name: lastName, role: role },
-      { new: true, runValidators: true } 
+      { new: true, runValidators: true },
     );
 
     console.log("Updated user:", updatedUser);
