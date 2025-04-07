@@ -240,7 +240,7 @@ export const getCurrentUserById = async (req: Request, res: Response) => {
 };
 
 export const deleteUser = async (req: Request, res: Response) => {
-  const { userId } = req.params;
+  const { menteeId: userId } = req.params;
 
   console.log("Deleting user: ", userId);
 
@@ -253,12 +253,13 @@ export const deleteUser = async (req: Request, res: Response) => {
     const deletedUser = await User.findOneAndDelete({ auth_id: userId });
 
     if (!deletedUser) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({ message: "User not found in db" });
     }
 
     const authDeletedUser = await deleteAuthUser(userId);
 
-    if (authDeletedUser.statusCode !== 201) {
+    if (authDeletedUser.status !== 204) {
+      console.log("Auth user deletion failed. Response: ", authDeletedUser);
       throw new Error("Failed to delete auth user");
     }
 

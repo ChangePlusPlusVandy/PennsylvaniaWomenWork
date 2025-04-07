@@ -23,6 +23,7 @@ interface Workshop {
 
 interface MenteeInfo {
   _id: string
+  auth_id: string
   first_name: string
   last_name: string
   email: string
@@ -247,12 +248,13 @@ const MenteeInformation = () => {
 
   const handleDeleteMentee = async (menteeId: string) => {
     try {
-      await api.delete(`/api/mentee/delete-mentee/${menteeId}`)
+      await api.delete(`/api/mentee/delete-mentee/${encodeURIComponent(mentee!.auth_id)}`)
       navigate("/home")
+      toast.success("Mentee deleted successfully.")
     } catch (err) {
       toast.error("Failed to delete mentee.")
+      console.log("Error deleting mentee:", err);
     } finally {
-      toast.success("Mentee deleted successfully.")
       setDeleteModal(false)
     }
   }

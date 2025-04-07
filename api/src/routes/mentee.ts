@@ -26,6 +26,6 @@ router.get("/all-mentees", getAllMentees);
 
 router.get("/:menteeId/mentors", getMentorsForMentee);
 
-router.delete("/:menteeId", deleteUser);
+router.delete("/delete-mentee/:menteeId", deleteUser);
 
 export default router;
