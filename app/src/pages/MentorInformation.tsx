@@ -1,78 +1,78 @@
-import React, { useState, useEffect } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
-import Navbar from "../components/Navbar"
-import Icon from "../components/Icon"
-import { api } from "../api"
-import toast from "react-hot-toast"
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import Icon from "../components/Icon";
+import { api } from "../api";
+import toast from "react-hot-toast";
 
 interface Mentee {
-  _id: string
-  first_name: string
-  last_name: string
-  email: string
+  _id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
 }
 
 interface Mentor {
-  _id: string
-  first_name: string
-  last_name: string
-  email: string
-  role: string
-  mentees: Mentee[]
+  _id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: string;
+  mentees: Mentee[];
 }
 
 const VolunteerInformation = () => {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const mentorId = location.state?.volunteerId // assuming volunteerId is really mentorId now
-  const [mentor, setMentor] = useState<Mentor | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const navigate = useNavigate();
+  const location = useLocation();
+  const mentorId = location.state?.volunteerId; // assuming volunteerId is really mentorId now
+  const [mentor, setMentor] = useState<Mentor | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (!mentorId) {
-      setError("Mentor ID is missing.")
-      setLoading(false)
-      return
+      setError("Mentor ID is missing.");
+      setLoading(false);
+      return;
     }
 
     const fetchMentorData = async () => {
       try {
-        const response = await api.get(`/api/mentor/get-mentor/${mentorId}`)
-        setMentor(response.data)
-        console.log("Mentor data:", response.data)
+        const response = await api.get(`/api/mentor/get-mentor/${mentorId}`);
+        setMentor(response.data);
+        console.log("Mentor data:", response.data);
       } catch (err) {
-        setError("Failed to load mentor details.")
-        console.error("Error fetching mentor data:", err)
+        setError("Failed to load mentor details.");
+        console.error("Error fetching mentor data:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchMentorData()
-  }, [mentorId])
+    fetchMentorData();
+  }, [mentorId]);
 
   const getInitials = () => {
-    if (!mentor) return ""
+    if (!mentor) return "";
     return (
       mentor.first_name.charAt(0).toUpperCase() +
       mentor.last_name.charAt(0).toUpperCase()
-    )
-  }
+    );
+  };
 
   const handleDeleteMentor = async (mentorId: string) => {
     try {
-      await api.delete(`/api/mentor/delete-mentor/${mentorId}`)
-      navigate("/home")
+      await api.delete(`/api/mentor/delete-mentor/${mentorId}`);
+      navigate("/home");
     } catch (err) {
-      setError("Failed to delete mentor.")
+      setError("Failed to delete mentor.");
     } finally {
-      toast.success("Mentor deleted successfully.")
+      toast.success("Mentor deleted successfully.");
     }
-  }
+  };
 
-  if (loading) return <div>Loading...</div>
-  if (error) return <div>{error}</div>
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>{error}</div>;
 
   return (
     <>
@@ -143,7 +143,7 @@ const VolunteerInformation = () => {
               <button
                 className="Button Button-color--red-1000 Button--hollow Width--100"
                 onClick={() => {
-                  handleDeleteMentor(mentorId)
+                  handleDeleteMentor(mentorId);
                 }}
               >
                 Delete Volunteer
@@ -181,7 +181,7 @@ const VolunteerInformation = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default VolunteerInformation
+export default VolunteerInformation;

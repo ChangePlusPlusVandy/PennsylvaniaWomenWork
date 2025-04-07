@@ -37,7 +37,7 @@ const BoardDashboard = () => {
             hour: "2-digit",
             minute: "2-digit",
             hour12: true,
-          }
+          },
         )} - ${end.toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
@@ -61,7 +61,7 @@ const BoardDashboard = () => {
             description: file.description,
             s3id: file.s3id,
             tags: file.tags || [],
-          }))
+          })),
         );
 
         setEvents(
@@ -73,7 +73,7 @@ const BoardDashboard = () => {
             date: event.date,
             userIds: event.users || [],
             calendarLink: event.calendarLink || "",
-          }))
+          })),
         );
 
         setEvents(eventsResponse.data);
@@ -121,7 +121,7 @@ const BoardDashboard = () => {
     .filter((event) => new Date(event.date) >= today)
     .sort(
       (a, b) =>
-        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
     ) // Sort events chronologically
     .reduce(
       (acc, event) => {
@@ -138,7 +138,7 @@ const BoardDashboard = () => {
 
         return acc;
       },
-      {} as { [key: string]: EventData[] }
+      {} as { [key: string]: EventData[] },
     );
 
   const handleEventClick = (event: EventData) => {
