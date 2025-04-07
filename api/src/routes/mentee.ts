@@ -7,9 +7,7 @@ import {
   getAllMentees,
   getMentorsForMentee,
 } from "../controllers/menteeController";
-import {
-  deleteUser,
-} from "../controllers/userController";
+import { deleteUser } from "../controllers/userController";
 import { get } from "http";
 
 const router = express.Router();
