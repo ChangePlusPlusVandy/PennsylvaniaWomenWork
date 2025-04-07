@@ -37,7 +37,7 @@ const BoardDashboard = () => {
             hour: "2-digit",
             minute: "2-digit",
             hour12: true,
-          },
+          }
         )} - ${end.toLocaleTimeString("en-US", {
           hour: "2-digit",
           minute: "2-digit",
@@ -61,7 +61,7 @@ const BoardDashboard = () => {
             description: file.description,
             s3id: file.s3id,
             tags: file.tags || [],
-          })),
+          }))
         );
 
         setEvents(
@@ -73,7 +73,7 @@ const BoardDashboard = () => {
             date: event.date,
             userIds: event.users || [],
             calendarLink: event.calendarLink || "",
-          })),
+          }))
         );
 
         setEvents(eventsResponse.data);
@@ -87,10 +87,31 @@ const BoardDashboard = () => {
     fetchData();
   }, [userId]);
 
-  const handleFileClick = (workshopId: string) => {
-    navigate(`/volunteer/workshop-information`, {
-      state: { workshopId },
-    });
+  const handleFileClick = async (fileId: string) => {
+    try {
+      console.log("File ID:", fileId); // Log the file ID for debugging
+      const signedUrl = await getFileLink(fileId);
+      if (signedUrl) {
+        window.open(signedUrl, "_blank"); // opens the file in a new tab
+      } else {
+        console.error("Failed to retrieve signed URL.");
+      }
+    } catch (error) {
+      console.error("Error fetching file link:", error);
+    }
+
+    // navigate(`/volunteer/workshop-information`, {
+    //   state: { workshopId },
+    // });
+  };
+
+  const getFileLink = async (fileId: string) => {
+    try {
+      const { data } = await api.get(`/api/resource/getURL/${fileId}`);
+      return data.signedUrl;
+    } catch (error) {
+      console.error("Error fetching file link:", error);
+    }
   };
 
   const today = new Date();
@@ -100,7 +121,7 @@ const BoardDashboard = () => {
     .filter((event) => new Date(event.date) >= today)
     .sort(
       (a, b) =>
-        new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
     ) // Sort events chronologically
     .reduce(
       (acc, event) => {
@@ -117,7 +138,7 @@ const BoardDashboard = () => {
 
         return acc;
       },
-      {} as { [key: string]: EventData[] },
+      {} as { [key: string]: EventData[] }
     );
 
   const handleEventClick = (event: EventData) => {
@@ -164,8 +185,8 @@ const BoardDashboard = () => {
                 {files.map((item) => (
                   <div
                     className="col-lg-4"
-                    key={item._id}
-                    onClick={() => handleFileClick(item._id)}
+                    key={item.s3id}
+                    onClick={() => handleFileClick(item.s3id)}
                   >
                     <div className="Mentor--card">
                       <div className="Mentor--card-color Background-color--teal-1000">
