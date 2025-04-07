@@ -175,4 +175,4 @@ export const deleteAuthUser = async (
       throw new Error(`Failed to delete user: ${error.message}`);
     }
   }
-}
+};
