@@ -38,3 +38,30 @@
   font-size: 14px;
   color: var(--pww-color-gray-1000);
 }
+
+.File-tags-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  height: 100%; /* Make sure the container takes full height */
+}
+
+.File-tags {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: flex-end;
+  margin-bottom: 6px;
+  margin-left: 6px;
+}
+
+.Tag {
+  display: inline-block;
+  padding: 4px 8px;
+  background-color: var(--pww-color-light-1000);
+  border-radius: 10px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}

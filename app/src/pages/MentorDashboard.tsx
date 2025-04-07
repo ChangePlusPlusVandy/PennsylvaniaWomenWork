@@ -212,6 +212,13 @@ const MentorDashboard = () => {
     setSelectedEvent(event);
   };
 
+  const handleMentorClick = (volunteerId: string) => {
+    console.log("Mentor ID:", volunteerId);
+    navigate("/particpant/participant-information", {
+      state: { volunteerId },
+    });
+  };
+
   useEffect(() => {
     if (user?.role === "board") {
       setActiveTab("Courses");
@@ -329,12 +336,19 @@ const MentorDashboard = () => {
                     {mentors.length > 0 ? (
                       <div className="row gx-3 gy-3">
                         {mentors.map((mentor) => (
-                          <div className="col-lg-4" key={mentor._id}>
+                          <div
+                            className="col-lg-4"
+                            key={mentor._id}
+                            onClick={() => handleMentorClick(mentor._id)}
+                          >
                             <div className="Mentor--card">
                               <div className="Mentor--card-color Background-color--teal-1000" />
                               <div className="Padding--10">
                                 <div className="Mentor--card-name">
                                   {mentor.first_name} {mentor.last_name}
+                                </div>
+                                <div className="Mentor--card-description">
+                                  {mentor.email}
                                 </div>
                               </div>
                             </div>

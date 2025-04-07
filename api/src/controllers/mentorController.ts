@@ -93,3 +93,60 @@ export const assignMenteeToMentor = async (req: Request, res: Response) => {
     });
   }
 };
+
+export const getMentorForMentee = async (req: Request, res: Response) => {
+  try {
+    const { menteeId } = req.params;
+
+    const mentee = await User.findById(menteeId);
+    if (!mentee || !mentee.mentor_id) {
+      return res
+        .status(404)
+        .json({ message: "Mentor not found for this mentee" });
+    }
+
+    const mentor = await User.findById(mentee.mentor_id);
+    if (!mentor) {
+      return res.status(404).json({ message: "Mentor not found" });
+    }
+
+    res.status(200).json({
+      first_name: mentor.first_name,
+      last_name: mentor.last_name,
+      email: mentor.email,
+    });
+  } catch (error) {
+    console.error("Error fetching mentor for mentee:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};
+
+export const getMentorById = async (req: Request, res: Response) => {
+  try {
+    const { mentorId } = req.params;
+
+    if (!mentorId) {
+      return res.status(400).json({ message: "Mentor ID is required" });
+    }
+
+    console.log("Fetching mentor with ID:", mentorId);
+
+    const mentor = await User.findById(mentorId);
+    if (!mentor) {
+      return res.status(404).json({ message: "Mentor not found" });
+    }
+
+    // Find all mentees assigned to this mentor
+    const mentees = await User.find({ mentor_id: mentorId });
+
+    const mentorWithMentees = {
+      ...mentor.toObject(),
+      mentees,
+    };
+
+    res.status(200).json(mentorWithMentees);
+  } catch (error) {
+    console.error("Error retrieving mentor:", error);
+    res.status(500).json({ message: "Error retrieving mentor", error });
+  }
+};

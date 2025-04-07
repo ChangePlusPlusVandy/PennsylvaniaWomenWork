@@ -1,11 +1,35 @@
 import React from "react";
+import { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
 import { useUser } from "../contexts/UserContext";
 import { useAuth0 } from "@auth0/auth0-react";
+import { api } from "../api";
 
 const Profile = () => {
   const { user: auth0User, logout } = useAuth0();
   const { user, error, loading } = useUser();
+  const [mentorInfo, setMentorInfo] = useState<{
+    first_name: string;
+    last_name: string;
+    email: string;
+  } | null>(null);
+
+  useEffect(() => {
+    const fetchMentorInfo = async () => {
+      if (user && user.role === "mentee") {
+        try {
+          const res = await api.get(
+            `/api/mentor/mentor-for-mentee/${user._id}`,
+          );
+          setMentorInfo(res.data);
+        } catch (err) {
+          console.error("Error fetching mentor info", err);
+        }
+      }
+    };
+
+    fetchMentorInfo();
+  }, [user]);
 
   // Function to compute initials from first and last name
   const getInitials = () => {
@@ -50,6 +74,31 @@ const Profile = () => {
                 <div className="Profile-field-label">Email:</div>
                 <div>{user.email}</div>
               </div>
+              {user.role === "mentee" && mentorInfo && (
+                <div className="Profile-mentor-section">
+                  <div
+                    style={{
+                      fontWeight: "600",
+                      fontSize: "1rem",
+                      marginTop: "1.5rem",
+                      marginBottom: "0.5rem",
+                      color: "#333",
+                    }}
+                  >
+                    Mentor Info:
+                  </div>
+                  <div className="Profile-field">
+                    <div className="Profile-field-label">Name:</div>
+                    <div>
+                      {mentorInfo.first_name} {mentorInfo.last_name}
+                    </div>
+                  </div>
+                  <div className="Profile-field">
+                    <div className="Profile-field-label">Email:</div>
+                    <div>{mentorInfo.email}</div>
+                  </div>
+                </div>
+              )}
               <div
                 className="Button Button-color--blue-1000 Margin-top--20"
                 onClick={() => {

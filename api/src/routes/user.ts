@@ -26,7 +26,4 @@ router.get("/current-user", getCurrentUser);
 
 router.get("/current-userid/:auth_id", getCurrentUserById);
 
-// Route to change a user's information
-router.put("/:userId", updateUser);
-
 export default router;
