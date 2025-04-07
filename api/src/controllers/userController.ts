@@ -75,7 +75,7 @@ export const sendEmail = async (req: Request, res: Response) => {
       );
     }
 
-    const { email, first_name, role } = req.body;
+    const { email, firstName, role } = req.body;
 
     sgMail.setApiKey(SENDGRID_API_KEY);
 
@@ -101,7 +101,7 @@ export const sendEmail = async (req: Request, res: Response) => {
       from: SEND_GRID_TEST_EMAIL,
       templateId: templateId,
       dynamicTemplateData: {
-        name: `${first_name}`,
+        name: `${firstName}`,
         password_reset_link: Auth0ResetLink,
         app_url: PUBLIC_APP_URL,
       },
