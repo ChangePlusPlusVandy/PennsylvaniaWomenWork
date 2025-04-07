@@ -6,6 +6,7 @@ import { api } from "../api"
 import Event, { EventData } from "../components/Event"
 import { useUser } from "../contexts/UserContext"
 import { useAuth0 } from "@auth0/auth0-react"
+import FolderCard from "../components/FolderCard"
 
 interface Workshop {
   _id: string
@@ -158,18 +159,12 @@ const MenteeDashboard = () => {
               <div className="row gx-3 gy-3">
                 {workshops.map((item) => (
                   <div className="col-lg-4" key={item._id}>
-                    <div
-                      className="Mentor--card"
+                    <FolderCard
+                      name={item.name}
+                      description={item.description}
+                      imageUrl={null} // or replace with imageUrls[item.coverImageS3id] if you have it
                       onClick={() => handleWorkshopClick(item._id)}
-                    >
-                      <div className="Mentor--card-color Background-color--teal-1000" />
-                      <div className="Padding--10">
-                        <div className="Mentor--card-name">{item.name}</div>
-                        <div className="Mentor--card-description">
-                          {item.description}
-                        </div>
-                      </div>
-                    </div>
+                    />
                   </div>
                 ))}
               </div>

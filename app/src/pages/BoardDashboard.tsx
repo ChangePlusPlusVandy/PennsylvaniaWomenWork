@@ -6,6 +6,7 @@ import { api } from "../api"
 import Event, { EventData } from "../components/Event"
 import { useUser } from "../contexts/UserContext"
 import { useAuth0 } from "@auth0/auth0-react"
+import FolderCard from "../components/FolderCard"
 
 interface File {
   _id: string
@@ -173,26 +174,12 @@ const BoardDashboard = () => {
                     key={item._id}
                     onClick={() => handleFileClick(item._id)}
                   >
-                    <div className="Mentor--card">
-                      <div className="Mentor--card-color Background-color--teal-1000">
-                        <div className="File-tags-container">
-                          <div className="File-tags">
-                            {item.tags.map((tag, index) => (
-                              <span key={index} className="Tag">
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="Padding--10">
-                        <div className="Mentor--card-name">{item.name}</div>
-                        <div className="Mentor--card-description">
-                          {item.description}
-                        </div>
-                      </div>
-                    </div>
+                    <FolderCard
+                      name={item.name}
+                      description={item.description}
+                      tags={item.tags}
+                      onClick={() => handleFileClick(item._id)}
+                    />
                   </div>
                 ))}
               </div>

@@ -5,6 +5,7 @@ interface WorkshopCardProps {
   description: string
   imageUrl?: string | null
   onClick?: () => void
+  tags?: string[]
 }
 
 const WorkshopCard: React.FC<WorkshopCardProps> = ({
@@ -12,6 +13,7 @@ const WorkshopCard: React.FC<WorkshopCardProps> = ({
   description,
   imageUrl,
   onClick,
+  tags = [],
 }) => {
   return (
     <div className="FolderCard" onClick={onClick}>
@@ -26,7 +28,19 @@ const WorkshopCard: React.FC<WorkshopCardProps> = ({
           }}
         />
       ) : (
-        <div className="FolderCard-color Background-color--teal-1000" />
+        <div className="FolderCard-color Background-color--teal-1000">
+          {tags.length > 0 && (
+            <div className="File-tags-container">
+              <div className="File-tags">
+                {tags.map((tag, index) => (
+                  <span key={index} className="Tag">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       )}
       <div className="Padding--10">
         <div className="FolderCard-name">{name}</div>
