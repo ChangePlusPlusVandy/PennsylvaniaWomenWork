@@ -157,18 +157,24 @@ const BoardDashboard = () => {
           header={selectedEvent.name}
           subheader={formattedSubheader}
           body={
-            <>
+            <div className="Flex-column">
               {selectedEvent.description}
-              <div>
+              {selectedEvent.calendarLink && (
                 <a
                   href={selectedEvent.calendarLink}
                   target="_blank"
                   rel="noopener noreferrer"
+                  className="Button Button-color--blue-1000 Margin-top--10"
+                  style={{
+                    display: "inline-block",
+                    textAlign: "center",
+                    textDecoration: "none",
+                  }}
                 >
                   Add to Calendar
                 </a>
-              </div>
-            </>
+              )}
+            </div>
           }
           action={() => setSelectedEvent(null)}
         />

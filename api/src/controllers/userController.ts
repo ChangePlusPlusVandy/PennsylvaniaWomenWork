@@ -186,6 +186,7 @@ export const updateUser = async (req: Request, res: Response) => {
     "meetingSchedule",
     "mentorData",
     "meetings",
+    "profile_picture_id",
   ];
 
   try {
@@ -202,8 +203,8 @@ export const updateUser = async (req: Request, res: Response) => {
         .json({ message: "No valid fields provided for update" });
     }
 
-    const updatedUser = await User.findByIdAndUpdate(
-      userId,
+    const updatedUser = await User.findOneAndUpdate(
+      { auth_id: userId },
       { $set: updateData },
       { new: true, runValidators: true }, // Return updated document and validate
     );

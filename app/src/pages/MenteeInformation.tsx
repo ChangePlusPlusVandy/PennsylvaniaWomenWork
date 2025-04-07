@@ -1,229 +1,246 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import Navbar from "../components/Navbar";
-import Icon from "../components/Icon";
-import Modal from "../components/Modal";
-import { Formik, Form, Field } from "formik";
-import * as yup from "yup";
-import { api } from "../api";
-import { useUser } from "../contexts/UserContext";
-import { tier1Roles } from "../utils/roles";
-import { toast } from "react-hot-toast";
-import { set } from "react-hook-form";
+import React, { useState, useEffect } from "react"
+import { useNavigate, useLocation } from "react-router-dom"
+import Navbar from "../components/Navbar"
+import Icon from "../components/Icon"
+import Modal from "../components/Modal"
+import { Formik, Form, Field } from "formik"
+import * as yup from "yup"
+import { api } from "../api"
+import { useUser } from "../contexts/UserContext"
+import { tier1Roles } from "../utils/roles"
+import { toast } from "react-hot-toast"
+import { set } from "react-hook-form"
+import { useProfileImage } from "../utils/custom-hooks"
 
 interface Workshop {
-  _id: string;
-  name: string;
-  description: string;
-  mentor: string;
-  mentees: string[];
+  _id: string
+  name: string
+  description: string
+  mentor: string
+  mentees: string[]
 }
 
 interface MenteeInfo {
-  _id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
-  role: string;
-  mentor?: string;
-  workshops: string[]; // Array of workshop names
+  _id: string
+  first_name: string
+  last_name: string
+  email: string
+  role: string
+  mentor?: string
+  workshops: string[] // Array of workshop names
+  profile_picture_id: string | null
 }
 
 interface MentorInfo {
-  _id: string;
-  first_name: string;
-  last_name: string;
-  email: string;
+  _id: string
+  first_name: string
+  last_name: string
+  email: string
+  profile_picture_id: string | null
 }
 
 const MenteeInformation = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const menteeId = location.state?.menteeId;
-  const [mentee, setMentee] = useState<MenteeInfo | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isModal, setIsModal] = useState(false);
-  const { user } = useUser();
-  const [availableWorkshops, setAvailableWorkshops] = useState([]);
-  const [assignedWorkshops, setAssignedWorkshops] = useState<Workshop[]>([]);
-  const [mentors, setMentors] = useState<MentorInfo[]>([]);
-  const [isAssignMentorModal, setIsAssignMentorModal] = useState(false);
+  const navigate = useNavigate()
+  const location = useLocation()
+  const menteeId = location.state?.menteeId
+  const [mentee, setMentee] = useState<MenteeInfo | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isModal, setIsModal] = useState(false)
+  const { user } = useUser()
+  const [availableWorkshops, setAvailableWorkshops] = useState([])
+  const [assignedWorkshops, setAssignedWorkshops] = useState<Workshop[]>([])
+  const [mentors, setMentors] = useState<MentorInfo[]>([])
+  const [mentorInfo, setMentorInfo] = useState<MentorInfo | null>(null)
+  const [isAssignMentorModal, setIsAssignMentorModal] = useState(false)
+
+  const profileImage = useProfileImage(mentee?.profile_picture_id)
 
   useEffect(() => {
     if (!menteeId) {
-      console.log("Mentee ID is missing.");
-      setLoading(false);
-      return;
+      console.log("Mentee ID is missing.")
+      setLoading(false)
+      return
     }
 
     const fetchMenteeData = async () => {
       try {
         // Fetch mentee details
         const menteeResponse = await api.get(
-          `/api/mentee/get-mentee/${menteeId}`,
-        );
-        setMentee(menteeResponse.data);
+          `/api/mentee/get-mentee/${menteeId}`
+        )
+        setMentee(menteeResponse.data)
+        // If the mentee has an assigned mentor, fetch mentor details
+        if (menteeResponse.data.mentor_id) {
+          try {
+            const mentorRes = await api.get(
+              `/api/mentor/mentor-for-mentee/${menteeResponse.data._id}`
+            )
+            setMentorInfo(mentorRes.data)
+          } catch (err) {
+            console.error("Failed to fetch mentor info", err)
+          }
+        }
 
         // Fetch workshops assigned to this mentee
         const workshopsResponse = await api.get(
-          `/api/mentee/${menteeId}/workshops`,
-        );
-        setAssignedWorkshops(workshopsResponse.data);
+          `/api/mentee/${menteeId}/workshops`
+        )
+        setAssignedWorkshops(workshopsResponse.data)
 
-        console.log("Mentee data:", menteeResponse.data);
-        console.log("Assigned workshops:", workshopsResponse.data);
+        console.log("Mentee data:", menteeResponse.data)
+        console.log("Assigned workshops:", workshopsResponse.data)
       } catch (err) {
-        setError("Failed to load mentee details.");
-        console.error("Error fetching mentee data:", err);
+        setError("Failed to load mentee details.")
+        console.error("Error fetching mentee data:", err)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchMenteeData();
-  }, [menteeId]);
+    fetchMenteeData()
+  }, [menteeId])
 
   useEffect(() => {
     const fetchWorkshops = async () => {
       try {
-        const response = await api.get("/api/workshop/get-workshops");
-        setAvailableWorkshops(response.data);
+        const response = await api.get("/api/workshop/get-workshops")
+        setAvailableWorkshops(response.data)
       } catch (err) {
-        console.error("Error fetching workshops:", err);
+        console.error("Error fetching workshops:", err)
       }
-    };
-    fetchWorkshops();
-  }, []);
+    }
+    fetchWorkshops()
+  }, [])
 
   useEffect(() => {
     // pull in all mentors
     const fetchMentors = async () => {
       try {
-        const response = await api.get("/api/mentor/all-mentors");
-        setMentors(response.data);
-        return response.data;
+        const response = await api.get("/api/mentor/all-mentors")
+        setMentors(response.data)
+        return response.data
       } catch (err) {
-        console.error("Error fetching mentors:", err);
+        console.error("Error fetching mentors:", err)
       }
-    };
-    fetchMentors();
-  }, [menteeId]);
+    }
+    fetchMentors()
+  }, [menteeId])
 
   const initialValues = {
     courseName: "",
-  };
+  }
 
   const validationSchema = yup.object({
     courseName: yup.string().required("Course selection is required"),
-  });
+  })
 
   const handleSubmit = async (
     values: typeof initialValues,
-    { setSubmitting }: any,
+    { setSubmitting }: any
   ) => {
     try {
       if (!menteeId) {
-        console.error("Mentee ID is missing.");
-        setSubmitting(false);
-        return;
+        console.error("Mentee ID is missing.")
+        setSubmitting(false)
+        return
       }
 
       console.log(
         "Assigning workshop:",
         values.courseName,
         "to mentee:",
-        menteeId,
-      );
+        menteeId
+      )
 
       const payload = {
         workshopId: values.courseName,
-      };
+      }
 
-      console.log("Sending payload:", payload);
+      console.log("Sending payload:", payload)
 
       const response = await api.put(
         `/api/mentee/${menteeId}/add-workshop`,
-        payload,
-      );
+        payload
+      )
 
-      console.log("Assignment response:", response);
+      console.log("Assignment response:", response)
 
       if (response.status === 200) {
-        toast.success("Workshop assigned successfully!");
+        toast.success("Workshop assigned successfully!")
         const updatedMentee = await api.get(
-          `/api/mentee/get-mentee/${menteeId}`,
-        );
-        setMentee(updatedMentee.data);
-        setIsModal(false);
+          `/api/mentee/get-mentee/${menteeId}`
+        )
+        setMentee(updatedMentee.data)
+        setIsModal(false)
       } else {
-        throw new Error("Failed to assign workshop");
+        throw new Error("Failed to assign workshop")
       }
     } catch (error) {
-      console.error("Error assigning workshop:", error);
-      toast.error("Failed to assign workshop");
+      console.error("Error assigning workshop:", error)
+      toast.error("Failed to assign workshop")
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
   const mentorInitialValues = {
     mentorName: "",
-  };
+  }
 
   const mentorValidationSchema = yup.object({
     mentorName: yup.string().required("Volunteer selection is required"),
-  });
+  })
   const handleMentorSubmit = async (
     values: typeof mentorInitialValues,
-    { setSubmitting }: any,
+    { setSubmitting }: any
   ) => {
     try {
       if (!menteeId) {
-        toast.error("No mentee selected");
-        setSubmitting(false);
-        return;
+        toast.error("No mentee selected")
+        setSubmitting(false)
+        return
       }
 
       const response = await api.put(
         `/api/mentor/${values.mentorName}/assign-mentee`,
         {
           menteeId: menteeId,
-        },
-      );
+        }
+      )
 
       if (response.status === 200) {
-        toast.success("Mentor assigned successfully");
+        toast.success("Mentor assigned successfully")
         // Refresh mentee data to show new mentor
         const menteeResponse = await api.get(
-          `/api/mentee/get-mentee/${menteeId}`,
-        );
-        setMentee(menteeResponse.data);
+          `/api/mentee/get-mentee/${menteeId}`
+        )
+        setMentee(menteeResponse.data)
       }
 
-      setIsAssignMentorModal(false);
+      setIsAssignMentorModal(false)
     } catch (error) {
-      console.error("Error assigning mentor:", error);
-      toast.error("Failed to assign mentor");
+      console.error("Error assigning mentor:", error)
+      toast.error("Failed to assign mentor")
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   // Compute initials for the mentee's avatar
   const getInitials = () => {
-    if (!mentee) return "";
+    if (!mentee) return ""
     return (
       mentee.first_name.charAt(0).toUpperCase() +
       mentee.last_name.charAt(0).toUpperCase()
-    );
-  };
+    )
+  }
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div>Loading...</div>
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return <div>{error}</div>
   }
 
   return (
@@ -254,7 +271,18 @@ const MenteeInformation = () => {
                   <div className="Block-subtitle">Participant Details</div>
                   <div className="Block-content">
                     <div className="Profile-avatar">
-                      <div className="Profile-initials">{getInitials()}</div>
+                      {profileImage ? (
+                        <div
+                          className="Profile-avatar-image"
+                          style={{
+                            backgroundImage: `url(${profileImage})`,
+                            backgroundSize: "cover",
+                            backgroundPosition: "center",
+                          }}
+                        />
+                      ) : (
+                        <div className="Profile-initials">{getInitials()}</div>
+                      )}
                     </div>
                     <div className="Profile-field">
                       <div className="Profile-field-label">Name:</div>
@@ -270,30 +298,64 @@ const MenteeInformation = () => {
                       <div className="Profile-field-label">Email:</div>
                       <div>{mentee?.email}</div>
                     </div>
-                    <div className="Profile-field">
-                      {mentee?.mentor ? (
-                        <>
-                          <div className="Profile-field-label">Mentor:</div>
-                          <div>{mentee?.mentor}</div>
-                        </>
-                      ) : (
+                    {mentorInfo ? (
+                      <>
+                        <div
+                          style={{
+                            fontWeight: "600",
+                            fontSize: "1rem",
+                            marginTop: "1rem",
+                            marginBottom: "0.5rem",
+                            color: "#333",
+                          }}
+                        >
+                          Volunteer Info:
+                        </div>
+                        <div className="Profile-field">
+                          <div
+                            className="Profile-field-label"
+                            style={{ fontWeight: "500" }}
+                          >
+                            Name:
+                          </div>
+                          <div>
+                            {mentorInfo.first_name} {mentorInfo.last_name}
+                          </div>
+                        </div>
+                        <div className="Profile-field">
+                          <div
+                            className="Profile-field-label"
+                            style={{ fontWeight: "500" }}
+                          >
+                            Email:
+                          </div>
+                          <div>{mentorInfo.email}</div>
+                        </div>
                         <div
                           className="Button Button-color--blue-1000 Width--100"
                           onClick={() => setIsAssignMentorModal(true)}
+                          style={{ marginTop: "1rem" }}
                         >
-                          Assign Mentor
+                          Change Volunteer
                         </div>
-                      )}
-                    </div>
+                      </>
+                    ) : (
+                      <div
+                        className="Button Button-color--blue-1000 Width--100"
+                        onClick={() => setIsAssignMentorModal(true)}
+                      >
+                        Assign Volunteer
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
               {/* Column 2: Mentee Courses */}
               <div className="col-lg-4 mb-4">
                 <div className="Block">
-                  <div className="Block-header">Participant Courses</div>
+                  <div className="Block-header">Participant Files</div>
                   <div className="Block-subtitle">
-                    Courses assigned to {mentee?.first_name}
+                    Files assigned to {mentee?.first_name}
                   </div>
                   {assignedWorkshops.length > 0 ? (
                     <div className="Flex-col">
@@ -304,7 +366,7 @@ const MenteeInformation = () => {
                       ))}
                     </div>
                   ) : (
-                    <p>No courses assigned.</p>
+                    <p>No files assigned.</p>
                   )}
                   {(user?.role === "staff" || user?.role === "mentor") && (
                     <button
@@ -445,7 +507,7 @@ const MenteeInformation = () => {
         />
       )}
     </>
-  );
-};
+  )
+}
 
-export default MenteeInformation;
+export default MenteeInformation

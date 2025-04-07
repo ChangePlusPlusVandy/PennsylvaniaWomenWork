@@ -1,13 +1,15 @@
-import React from "react";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "../components/Navbar";
-import { useUser } from "../contexts/UserContext";
+import { useUser, User } from "../contexts/UserContext";
 import { useAuth0 } from "@auth0/auth0-react";
 import { api } from "../api";
+import { toast } from "react-hot-toast";
+import { set } from "react-hook-form";
+import { useProfileImage } from "../utils/custom-hooks";
 
 const Profile = () => {
   const { user: auth0User, logout } = useAuth0();
-  const { user, error, loading } = useUser();
+  const { user, error, loading, setUser } = useUser();
   const [mentorInfo, setMentorInfo] = useState<{
     first_name: string;
     last_name: string;
@@ -19,7 +21,7 @@ const Profile = () => {
       if (user && user.role === "mentee") {
         try {
           const res = await api.get(
-            `/api/mentor/mentor-for-mentee/${user._id}`,
+            `/api/mentor/mentor-for-mentee/${user._id}`
           );
           setMentorInfo(res.data);
         } catch (err) {
@@ -31,6 +33,8 @@ const Profile = () => {
     fetchMentorInfo();
   }, [user]);
 
+  const profileImage = useProfileImage(user?.profile_picture_id);
+
   // Function to compute initials from first and last name
   const getInitials = () => {
     if (!user) return "";
@@ -41,6 +45,69 @@ const Profile = () => {
       ? user.last_name.charAt(0).toUpperCase()
       : "";
     return firstInitial + lastInitial;
+  };
+
+  const handleImageUpload = async (values: any) => {
+    try {
+      console.log("values", values);
+
+      if (!values.imageUpload) {
+        toast.error("Please select an image");
+        return;
+      } else if (values.imageUpload.size > 1 * 1024 * 1024) {
+        toast.error("Image size exceeds 1MB. Select a smaller image.", {
+          duration: 5000,
+        });
+        return;
+      } else if (
+        !["image/jpeg", "image/png"].includes(values.imageUpload.type)
+      ) {
+        toast.error("Invalid image format. Only JPEG, and PNG are allowed.");
+        return;
+      }
+
+      let profileImageS3id = null;
+
+      if (values.imageUpload) {
+        // Get presigned URL for the pfp
+        const pfpImageResponse = await api.get(
+          `/api/workshop/generate-presigned-url/${encodeURIComponent(values.imageUpload.name)}`
+        );
+
+        const { url: pfpImageUrl, objectKey: pfpImageObjectKey } =
+          pfpImageResponse.data;
+
+        // Upload the profile image to S3
+        await fetch(pfpImageUrl, {
+          method: "PUT",
+          body: values.imageUpload,
+          headers: { "Content-Type": values.imageUpload.type },
+        });
+
+        profileImageS3id = pfpImageObjectKey;
+      }
+
+      const payload = {
+        profile_picture_id: profileImageS3id,
+      };
+
+      console.log("payload", payload);
+
+      const { status } = await api.put(
+        `/api/user/${encodeURIComponent(user!.auth_id)}`,
+        payload
+      );
+
+      if (status === 200) {
+        toast.success("Profile picture updated successfully");
+        setUser({ ...user, profile_picture_id: profileImageS3id } as User);
+      } else {
+        toast.error("Failed to update profile picture. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("Image upload failed. Please try again.");
+    }
   };
 
   return (
@@ -57,8 +124,18 @@ const Profile = () => {
             <div className="Block-subtitle">User Details and Settings</div>
             <div className="Block-content">
               <div className="Profile-avatar">
-                {/* Display user's initials instead of an image */}
-                <div className="Profile-initials">{getInitials()}</div>
+                {profileImage ? (
+                  <div
+                    className="Profile-avatar-image"
+                    style={{
+                      backgroundImage: `url(${profileImage})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  />
+                ) : (
+                  <div className="Profile-initials">{getInitials()}</div>
+                )}
               </div>
               <div className="Profile-field">
                 <div className="Profile-field-label">Name:</div>
@@ -74,6 +151,29 @@ const Profile = () => {
                 <div className="Profile-field-label">Email:</div>
                 <div>{user.email}</div>
               </div>
+              <div className="Profile-field">
+                <div className="Profile-field-label">
+                  {profileImage ? "Change" : "Add"} profile picture:
+                </div>
+
+                <input
+                  type="file"
+                  id="imageUpload"
+                  accept="image/*"
+                  style={{ display: "none" }}
+                  onChange={(e) =>
+                    handleImageUpload({ imageUpload: e.target.files?.[0] })
+                  }
+                />
+                <div
+                  className="Button Button-color--blue-1000"
+                  onClick={() =>
+                    document.getElementById("imageUpload")?.click()
+                  }
+                >
+                  {profileImage ? "Change" : "Add"} Profile Picture
+                </div>
+              </div>
               {user.role === "mentee" && mentorInfo && (
                 <div className="Profile-mentor-section">
                   <div
@@ -85,7 +185,7 @@ const Profile = () => {
                       color: "#333",
                     }}
                   >
-                    Mentor Info:
+                    Volunteer Info:
                   </div>
                   <div className="Profile-field">
                     <div className="Profile-field-label">Name:</div>

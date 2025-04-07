@@ -135,3 +135,56 @@
     }
   }
 }
+
+
+/* src/components/ParticipantCard.css */
+.ParticipantCard {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 0.75rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.ParticipantCard:hover {
+  // add box shadow and scale on hover
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transform: scale(1.02);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+}
+
+.ParticipantCard-avatarWrapper {
+  margin-right: 1rem;
+}
+
+.ParticipantCard-avatar,
+.ParticipantCard-avatarPlaceholder {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover; /* If you have an actual image */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  background-color: var(--pww-color-gray-100);
+  color: var(--pww-color-gray-1000);
+  border: 2px solid var(--pww-color-blue-1000);
+}
+
+.ParticipantCard-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.ParticipantCard-name {
+  font-size: 1rem;
+  margin-bottom: 0.25rem;
+}
+
+.ParticipantCard-email {
+  font-size: 0.9rem;
+  color: #777;
+}

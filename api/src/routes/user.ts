@@ -26,4 +26,6 @@ router.get("/current-user", getCurrentUser);
 
 router.get("/current-userid/:auth_id", getCurrentUserById);
 
+router.put("/:userId", updateUser);
+
 export default router;

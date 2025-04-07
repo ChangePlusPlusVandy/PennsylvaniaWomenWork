@@ -8,19 +8,22 @@ import React, {
 import { useAuth0 } from "@auth0/auth0-react";
 import { api } from "../api";
 
-interface User {
+export interface User {
   _id: string;
   username: string;
   first_name: string;
   last_name: string;
   email: string;
   role: string;
+  auth_id: string;
+  profile_picture_id: string | null;
 }
 
 interface UserContextType {
   user: User | null;
   error: string | null;
   loading: boolean;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -70,7 +73,7 @@ export const UserProvider = ({ children }: { children: ReactNode }) => {
   }, [auth0User]); // ✅ Re-run when auth0User updates
 
   return (
-    <UserContext.Provider value={{ user, error, loading }}>
+    <UserContext.Provider value={{ user, error, loading, setUser }}>
       {children}
     </UserContext.Provider>
   );
