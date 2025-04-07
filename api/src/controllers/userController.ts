@@ -4,6 +4,7 @@ import User from "../model/User";
 import {
   createAuthUser,
   createUserLink,
+  deleteAuthUser,
 } from "../config/auth0-user-management";
 
 export const createUser = async (req: Request, res: Response) => {
@@ -74,7 +75,7 @@ export const sendEmail = async (req: Request, res: Response) => {
       );
     }
 
-    const { email, name, role } = req.body;
+    const { email, first_name, role } = req.body;
 
     sgMail.setApiKey(SENDGRID_API_KEY);
 
@@ -100,7 +101,7 @@ export const sendEmail = async (req: Request, res: Response) => {
       from: SEND_GRID_TEST_EMAIL,
       templateId: templateId,
       dynamicTemplateData: {
-        name: name,
+        name: `${first_name}`,
         password_reset_link: Auth0ResetLink,
         app_url: PUBLIC_APP_URL,
       },
@@ -235,5 +236,37 @@ export const getCurrentUserById = async (req: Request, res: Response) => {
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const deleteUser = async (req: Request, res: Response) => {
+  const { userId } = req.params;
+
+  console.log("Deleting user: ", userId);
+
+  if (!userId)
+    return res
+      .status(400)
+      .json({ message: "Invalid request. No user specified" });
+
+  try {
+    const deletedUser = await User.findOneAndDelete({ auth_id: userId });
+
+    if (!deletedUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const authDeletedUser = await deleteAuthUser(userId);
+
+    if (authDeletedUser.statusCode !== 201) {
+      throw new Error("Failed to delete auth user");
+    }
+
+    console.log("Deleted auth: ", authDeletedUser);
+
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ message: "Error deleting user", error });
   }
 };

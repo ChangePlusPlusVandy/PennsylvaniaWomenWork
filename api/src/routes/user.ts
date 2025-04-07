@@ -8,6 +8,7 @@ import {
   getCurrentUser,
   updateUser,
   getCurrentUserById,
+  deleteUser,
 } from "../controllers/userController";
 
 const router = express.Router();
@@ -27,5 +28,8 @@ router.get("/current-user", getCurrentUser);
 router.get("/current-userid/:auth_id", getCurrentUserById);
 
 router.put("/:userId", updateUser);
+
+// delete user from auth0 and mongo by id
+router.delete("/:userId", deleteUser);
 
 export default router;
