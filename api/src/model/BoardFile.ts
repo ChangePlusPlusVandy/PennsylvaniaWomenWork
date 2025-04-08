@@ -3,15 +3,15 @@ import mongoose, { Schema, Document } from "mongoose";
 interface IBoardFile extends Document {
   name: string;
   description: string;
-  s3id: string;
-  tags: string[];
+  coverImageS3id?: string;
+  createdAt: Date;
 }
 
 const BoardFileSchema: Schema<IBoardFile> = new Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
-  s3id: { type: String, required: true },
-  tags: [{ type: String }],
+  coverImageS3id: { type: String },
+  createdAt: { type: Date, default: Date.now },
 });
 
 const BoardFile = mongoose.model<IBoardFile>("boardFile", BoardFileSchema);
