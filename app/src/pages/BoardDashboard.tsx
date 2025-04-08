@@ -87,12 +87,6 @@ const BoardDashboard = () => {
     fetchFiles()
   }, [])
 
-  const handleFileClick = (workshopId: string) => {
-    navigate(`/volunteer/workshop-information`, {
-      state: { workshopId },
-    })
-  }
-
   const handleEventClick = (event: EventData) => {
     setSelectedEvent(event)
   }
