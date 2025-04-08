@@ -5,8 +5,6 @@ import Modal from "../components/Modal"
 import { useUser } from "../contexts/UserContext"
 import { User as AppUser } from "../contexts/UserContext"
 import { api } from "../api"
-import ParticipantCard from "../components/ParticipantCard"
-import FolderCard from "../components/FolderCard"
 import { toast } from "react-hot-toast"
 import Event, {
   EventData,
@@ -14,18 +12,12 @@ import Event, {
   groupEventsByMonth,
   formatEventSubheader,
 } from "../components/Event"
-import { Formik, Form, Field } from "formik"
-import TagDropdown from "../components/MultiSelectDropdown"
+
 import FolderUI from "../components/FolderUI"
+import ParticipantUI from "../components/ParticipantUI"
+import ParticipantCard from "../components/ParticipantCard"
 
-interface Mentee {
-  _id: string
-  first_name: string
-  last_name: string
-  email: string
-}
-
-interface Mentor {
+interface User {
   _id: string
   first_name: string
   last_name: string
@@ -55,8 +47,8 @@ type ImageUrlMap = Record<string, string | null>
 
 const StaffDashboard = () => {
   const navigate = useNavigate()
-  const [mentees, setMentees] = useState<Mentee[]>([])
-  const [mentors, setMentors] = useState<Mentor[]>([])
+  const [mentees, setMentees] = useState<User[]>([])
+  const [mentors, setMentors] = useState<User[]>([])
   const [staffMembers, setStaffMembers] = useState<AppUser[]>([])
   const [boardMembers, setBoardMembers] = useState<AppUser[]>([])
   const [loading, setLoading] = useState(true)
@@ -217,7 +209,7 @@ const StaffDashboard = () => {
 
   const handleMentorClick = (volunteerId: string) => {
     console.log("Mentor ID:", volunteerId)
-    navigate("/particpant/participant-information", {
+    navigate("/volunteer/volunteer-information", {
       state: { volunteerId },
     })
   }
@@ -359,30 +351,29 @@ const StaffDashboard = () => {
                 </div>
               )}
 
-              {(user?.role === "staff" || user?.role === "board") &&
-                activeTab === "Volunteers" && (
-                  <div>
-                    {mentors.length > 0 ? (
-                      <div className="row gx-3 gy-3">
-                        {mentors.map((mentor) => (
-                          <div className="col-lg-6" key={mentor._id}>
-                            <ParticipantCard
-                              firstName={mentor.first_name}
-                              lastName={mentor.last_name}
-                              email={mentor.email}
-                              profilePictureId={
-                                (mentor as any).profile_picture_id
-                              }
-                              onClick={() => handleMentorClick(mentor._id)}
-                            />
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <p>No mentors found.</p>
-                    )}
-                  </div>
-                )}
+              {user?.role === "staff" && activeTab === "Volunteers" && (
+                <div>
+                  {mentors.length > 0 ? (
+                    <div className="row gx-3 gy-3">
+                      {mentors.map((mentor) => (
+                        <div className="col-lg-6" key={mentor._id}>
+                          <ParticipantCard
+                            firstName={mentor.first_name}
+                            lastName={mentor.last_name}
+                            email={mentor.email}
+                            profilePictureId={
+                              (mentor as any).profile_picture_id
+                            }
+                            onClick={() => handleMentorClick(mentor._id)}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>No mentors found.</p>
+                  )}
+                </div>
+              )}
 
               {activeTab === "Staff Members" && (
                 <div>
