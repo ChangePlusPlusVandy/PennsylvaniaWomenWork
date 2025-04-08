@@ -1,14 +1,14 @@
-import React from "react"
-import Modal from "./Modal"
+import React from "react";
+import Modal from "./Modal";
 
 interface ConfirmActionModalProps {
-  isOpen: boolean
-  title: string
-  message: string
-  confirmLabel?: string
-  onConfirm: () => void
-  onCancel: () => void
-  isDanger?: boolean
+  isOpen: boolean;
+  title: string;
+  message: string;
+  confirmLabel?: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+  isDanger?: boolean;
 }
 
 const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
@@ -20,7 +20,7 @@ const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
   onCancel,
   isDanger = true,
 }) => {
-  if (!isOpen) return null
+  if (!isOpen) return null;
 
   return (
     <Modal
@@ -53,7 +53,7 @@ const ConfirmActionModal: React.FC<ConfirmActionModalProps> = ({
         </>
       }
     />
-  )
-}
+  );
+};
 
-export default ConfirmActionModal
+export default ConfirmActionModal;

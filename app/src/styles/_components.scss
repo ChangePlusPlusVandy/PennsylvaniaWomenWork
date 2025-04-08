@@ -136,7 +136,6 @@
   }
 }
 
-
 /* src/components/ParticipantCard.css */
 .ParticipantCard {
   display: flex;
@@ -151,9 +150,11 @@
 .ParticipantCard:hover {
   // add box shadow and scale on hover
   cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transform: scale(1.02);
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
 }
 
 .ParticipantCard-avatarWrapper {
@@ -201,9 +202,11 @@
 
   &:hover {
     cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     transform: scale(1.02);
-    transition: box-shadow 0.3s ease, transform 0.3s ease;
+    transition:
+      box-shadow 0.3s ease,
+      transform 0.3s ease;
   }
 
   &-color {

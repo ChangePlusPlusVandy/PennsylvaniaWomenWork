@@ -1,20 +1,20 @@
-import React from "react"
+import React from "react";
 
 export interface EventData {
-  userIds: string[]
-  date: string
-  startTime: string
-  endTime: string
-  name: string
-  description: string
-  formattedDate?: string
-  calendarLink?: string
+  userIds: string[];
+  date: string;
+  startTime: string;
+  endTime: string;
+  name: string;
+  description: string;
+  formattedDate?: string;
+  calendarLink?: string;
 }
 
 interface EventProps {
-  month: string
-  events: EventData[]
-  onEventClick: (event: EventData) => void
+  month: string;
+  events: EventData[];
+  onEventClick: (event: EventData) => void;
 }
 
 const Event = ({ month, events, onEventClick }: EventProps) => {
@@ -23,21 +23,21 @@ const Event = ({ month, events, onEventClick }: EventProps) => {
       <div className="Event-month">{month}</div>
 
       {events.map((event) => {
-        const eventDate = new Date(event.date)
-        const dayOfMonth = eventDate.getDate()
+        const eventDate = new Date(event.date);
+        const dayOfMonth = eventDate.getDate();
         const dayOfWeek = eventDate.toLocaleDateString("en-US", {
           weekday: "short",
-        })
+        });
 
         const formattedStart = new Date(event.startTime).toLocaleTimeString(
           "en-US",
-          { hour: "2-digit", minute: "2-digit", hour12: true }
-        )
+          { hour: "2-digit", minute: "2-digit", hour12: true },
+        );
         const formattedEnd = new Date(event.endTime).toLocaleTimeString(
           "en-US",
-          { hour: "2-digit", minute: "2-digit", hour12: true }
-        )
-        const timeRange = `${formattedStart} – ${formattedEnd}`
+          { hour: "2-digit", minute: "2-digit", hour12: true },
+        );
+        const timeRange = `${formattedStart} – ${formattedEnd}`;
 
         return (
           <div
@@ -55,10 +55,10 @@ const Event = ({ month, events, onEventClick }: EventProps) => {
               <div className="time">{timeRange}</div>
             </div>
           </div>
-        )
+        );
       })}
     </div>
-  )
-}
+  );
+};
 
-export default Event
+export default Event;

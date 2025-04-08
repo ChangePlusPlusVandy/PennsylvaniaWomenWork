@@ -1,171 +1,171 @@
-import React, { useEffect, useState } from "react"
-import Navbar from "../components/Navbar"
-import Modal from "../components/Modal"
-import pdf from "../assets/pdf.jpg"
-import docx from "../assets/docx.png"
-import video from "../assets/video.png"
-import Icon from "../components/Icon"
-import { useNavigate, useLocation } from "react-router-dom"
-import { api } from "../api"
-import { useUser } from "../contexts/UserContext"
-import { Formik, Form, Field } from "formik"
-import * as Yup from "yup"
-import AsyncSubmit from "../components/AsyncSubmit"
-import CreatableSelect from "react-select/creatable"
-import makeAnimated from "react-select/animated"
-import { toast } from "react-hot-toast"
-import ConfirmActionModal from "../components/ConfirmActionModal"
+import React, { useEffect, useState } from "react";
+import Navbar from "../components/Navbar";
+import Modal from "../components/Modal";
+import pdf from "../assets/pdf.jpg";
+import docx from "../assets/docx.png";
+import video from "../assets/video.png";
+import Icon from "../components/Icon";
+import { useNavigate, useLocation } from "react-router-dom";
+import { api } from "../api";
+import { useUser } from "../contexts/UserContext";
+import { Formik, Form, Field } from "formik";
+import * as Yup from "yup";
+import AsyncSubmit from "../components/AsyncSubmit";
+import CreatableSelect from "react-select/creatable";
+import makeAnimated from "react-select/animated";
+import { toast } from "react-hot-toast";
+import ConfirmActionModal from "../components/ConfirmActionModal";
 
-const animatedComponents = makeAnimated()
+const animatedComponents = makeAnimated();
 
 const getIconForFile = (filename: string) => {
-  const extension = filename.split(".").pop()?.toLowerCase()
+  const extension = filename.split(".").pop()?.toLowerCase();
   switch (extension) {
     case "pdf":
-      return pdf
+      return pdf;
     case "doc":
     case "docx":
-      return docx
+      return docx;
     case "mp4":
     case "mov":
     case "avi":
-      return video
+      return video;
     default:
-      return docx
+      return docx;
   }
-}
+};
 
 interface Workshop {
-  _id: string
-  name: string
-  description: string
-  s3id: string
-  createdAt: string
-  mentor: string
-  mentee: string
+  _id: string;
+  name: string;
+  description: string;
+  s3id: string;
+  createdAt: string;
+  mentor: string;
+  mentee: string;
 }
 
 const WorkshopInformation = () => {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const workshopId = location.state?.workshopId
-  const [resources, setResources] = useState<any[]>([])
-  const [workshop, setWorkshop] = React.useState<Workshop | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const { user } = useUser()
-  const [isModal, setIsModal] = useState(false)
-  const [availableTags, setAvailableTags] = useState<string[]>([])
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const [newTagInput, setNewTagInput] = useState("")
-  const [fileAdded, setFileAdded] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const navigate = useNavigate();
+  const location = useLocation();
+  const workshopId = location.state?.workshopId;
+  const [resources, setResources] = useState<any[]>([]);
+  const [workshop, setWorkshop] = React.useState<Workshop | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useUser();
+  const [isModal, setIsModal] = useState(false);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [newTagInput, setNewTagInput] = useState("");
+  const [fileAdded, setFileAdded] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   // get workshop information by id
   const getWorkshop = async () => {
     try {
       if (!workshopId) {
-        console.error("No workshop ID provided")
-        return
+        console.error("No workshop ID provided");
+        return;
       }
 
-      const response = await api.get(`/api/workshop/${workshopId}`)
-      setWorkshop(response.data)
+      const response = await api.get(`/api/workshop/${workshopId}`);
+      setWorkshop(response.data);
     } catch (error) {
-      console.error("Error fetching folder:", error)
+      console.error("Error fetching folder:", error);
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   useEffect(() => {
-    getWorkshop()
-  }, [workshopId])
+    getWorkshop();
+  }, [workshopId]);
 
   useEffect(() => {
     // call endpoint to get all resources for a workshop
     const fetchResources = async () => {
       try {
         const { data: resourceList } = await api.get(
-          `/api/resource/get-resource-by-workshop/${workshopId}`
-        )
+          `/api/resource/get-resource-by-workshop/${workshopId}`,
+        );
 
         if (!resourceList || resourceList.length === 0) {
-          setResources([])
-          setError("No resources found.")
-          return
+          setResources([]);
+          setError("No resources found.");
+          return;
         }
 
         const resourcesWithURL = await Promise.all(
           resourceList.map(async (res: any) => {
-            const { data } = await api.get(`/api/resource/getURL/${res.s3id}`)
-            return { ...res, url: data.signedUrl }
-          })
-        )
-        setResources(resourcesWithURL)
+            const { data } = await api.get(`/api/resource/getURL/${res.s3id}`);
+            return { ...res, url: data.signedUrl };
+          }),
+        );
+        setResources(resourcesWithURL);
       } catch (error) {
-        setError("Error fetching resources.")
+        setError("Error fetching resources.");
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    fetchResources()
-  }, [])
+    fetchResources();
+  }, []);
 
   if (loading) {
-    return <div>Loading...</div>
+    return <div>Loading...</div>;
   }
 
   if (!workshop) {
-    return <div>Folder not found</div>
+    return <div>Folder not found</div>;
   }
   const deleteWorkshop = async () => {
     try {
       // TODO: Add API call to delete workshop
-      await api.delete(`/api/workshop/delete-workshop/${workshop?._id}`)
-      console.log("Deleting workshop:", workshop?._id)
-      setShowDeleteModal(false)
-      toast.success("Workshop deleted successfully!")
-      navigate("/home")
+      await api.delete(`/api/workshop/delete-workshop/${workshop?._id}`);
+      console.log("Deleting workshop:", workshop?._id);
+      setShowDeleteModal(false);
+      toast.success("Workshop deleted successfully!");
+      navigate("/home");
     } catch (error) {
-      console.error("Error deleting workshop:", error)
+      console.error("Error deleting workshop:", error);
     }
-  }
+  };
 
   const fileUploadInitialValues = {
     title: "",
     desc: "",
     file: null, // This will not be used until s3 integration
-  }
+  };
 
   const fileValidation = Yup.object().shape({
     title: Yup.string().required("Title is required"),
     desc: Yup.string().required("Description is required"),
     file: Yup.mixed().required("Please select a file"),
-  })
+  });
 
   const handleFileSumbit = async (
     values: any,
-    { resetForm, setFieldValue }: any
+    { resetForm, setFieldValue }: any,
   ) => {
-    setIsLoading(true)
-    setErrorMessage("")
+    setIsLoading(true);
+    setErrorMessage("");
     try {
-      const { title, desc, file } = values
+      const { title, desc, file } = values;
       if (!file) {
-        setErrorMessage("No file selected.")
-        setIsLoading(false)
-        return
+        setErrorMessage("No file selected.");
+        setIsLoading(false);
+        return;
       }
 
       const response = await api.get(
-        `/api/workshop/generate-presigned-url/${encodeURIComponent(file.name)}`
-      )
+        `/api/workshop/generate-presigned-url/${encodeURIComponent(file.name)}`,
+      );
 
-      const { url, objectKey } = response.data
+      const { url, objectKey } = response.data;
 
       // Add file details with a placeholder s3id to the list
       const newFile = {
@@ -175,23 +175,23 @@ const WorkshopInformation = () => {
         s3id: objectKey, // TODO: change
         file: file,
         tags: selectedTags,
-      }
+      };
 
       const uploadResponse = await fetch(newFile.url, {
         method: "PUT",
         body: newFile.file,
         headers: { "Content-Type": newFile.file.type },
-      })
-      console.log("Upload response:", uploadResponse)
+      });
+      console.log("Upload response:", uploadResponse);
       await api.post("/api/resource/create-resource", {
         name: newFile.title,
         description: newFile.desc,
         s3id: newFile.s3id, // Placeholder
         workshopIDs: [workshopId], // Link resource to this workshop
         tags: newFile.tags,
-      })
+      });
 
-      const { data } = await api.get(`/api/resource/getURL/${newFile.s3id}`)
+      const { data } = await api.get(`/api/resource/getURL/${newFile.s3id}`);
 
       setResources((prev) => [
         ...prev,
@@ -202,17 +202,17 @@ const WorkshopInformation = () => {
           tags: newFile.tags,
           url: data.signedUrl,
         },
-      ])
+      ]);
 
-      resetForm()
-      setIsModal(false)
+      resetForm();
+      setIsModal(false);
     } catch (error) {
-      console.error("Error adding file:", error)
-      setErrorMessage("Failed to add file. Please try again.")
+      console.error("Error adding file:", error);
+      setErrorMessage("Failed to add file. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <>
@@ -244,17 +244,17 @@ const WorkshopInformation = () => {
                       }))}
                       onChange={(selectedOptions: any) =>
                         setSelectedTags(
-                          selectedOptions.map((opt: any) => opt.value)
+                          selectedOptions.map((opt: any) => opt.value),
                         )
                       }
                       onCreateOption={(inputValue: any) => {
-                        const trimmed = inputValue.trim()
-                        if (!trimmed) return
+                        const trimmed = inputValue.trim();
+                        if (!trimmed) return;
                         if (!availableTags.includes(trimmed)) {
-                          setAvailableTags((prev) => [...prev, trimmed])
+                          setAvailableTags((prev) => [...prev, trimmed]);
                         }
                         if (!selectedTags.includes(trimmed)) {
-                          setSelectedTags((prev) => [...prev, trimmed])
+                          setSelectedTags((prev) => [...prev, trimmed]);
                         }
                       }}
                       placeholder="Select or type to create a tag..."
@@ -309,8 +309,8 @@ const WorkshopInformation = () => {
                       name="file"
                       onChange={(event) => {
                         if (event.currentTarget.files) {
-                          const file = event.currentTarget.files[0]
-                          setFieldValue("file", file)
+                          const file = event.currentTarget.files[0];
+                          setFieldValue("file", file);
                         }
                       }}
                     />
@@ -422,7 +422,7 @@ const WorkshopInformation = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default WorkshopInformation
+export default WorkshopInformation;

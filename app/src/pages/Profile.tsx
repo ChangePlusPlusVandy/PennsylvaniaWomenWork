@@ -21,7 +21,7 @@ const Profile = () => {
       if (user && user.role === "mentee") {
         try {
           const res = await api.get(
-            `/api/mentor/mentor-for-mentee/${user._id}`
+            `/api/mentor/mentor-for-mentee/${user._id}`,
           );
           setMentorInfo(res.data);
         } catch (err) {
@@ -71,7 +71,7 @@ const Profile = () => {
       if (values.imageUpload) {
         // Get presigned URL for the pfp
         const pfpImageResponse = await api.get(
-          `/api/workshop/generate-presigned-url/${encodeURIComponent(values.imageUpload.name)}`
+          `/api/workshop/generate-presigned-url/${encodeURIComponent(values.imageUpload.name)}`,
         );
 
         const { url: pfpImageUrl, objectKey: pfpImageObjectKey } =
@@ -95,7 +95,7 @@ const Profile = () => {
 
       const { status } = await api.put(
         `/api/user/${encodeURIComponent(user!.auth_id)}`,
-        payload
+        payload,
       );
 
       if (status === 200) {

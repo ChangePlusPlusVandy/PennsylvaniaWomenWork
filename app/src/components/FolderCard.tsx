@@ -1,11 +1,11 @@
-import React from "react"
+import React from "react";
 
 interface WorkshopCardProps {
-  name: string
-  description: string
-  imageUrl?: string | null
-  onClick?: () => void
-  tags?: string[]
+  name: string;
+  description: string;
+  imageUrl?: string | null;
+  onClick?: () => void;
+  tags?: string[];
 }
 
 const WorkshopCard: React.FC<WorkshopCardProps> = ({
@@ -47,7 +47,7 @@ const WorkshopCard: React.FC<WorkshopCardProps> = ({
         <div className="FolderCard-description">{description}</div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default WorkshopCard
+export default WorkshopCard;

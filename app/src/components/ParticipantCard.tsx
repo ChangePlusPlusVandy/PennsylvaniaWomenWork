@@ -1,12 +1,12 @@
-import React from "react"
-import { useProfileImage } from "../utils/custom-hooks"
+import React from "react";
+import { useProfileImage } from "../utils/custom-hooks";
 
 interface ParticipantCardProps {
-  firstName: string
-  lastName: string
-  email: string
-  profilePictureId?: string
-  onClick?: () => void
+  firstName: string;
+  lastName: string;
+  email: string;
+  profilePictureId?: string;
+  onClick?: () => void;
 }
 
 const ParticipantCard: React.FC<ParticipantCardProps> = ({
@@ -16,11 +16,11 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
   profilePictureId,
   onClick,
 }) => {
-  const profileImage = useProfileImage(profilePictureId)
+  const profileImage = useProfileImage(profilePictureId);
 
   const initials =
     (firstName?.charAt(0)?.toUpperCase() || "") +
-    (lastName?.charAt(0)?.toUpperCase() || "")
+    (lastName?.charAt(0)?.toUpperCase() || "");
 
   return (
     <div className="ParticipantCard" onClick={onClick}>
@@ -44,7 +44,7 @@ const ParticipantCard: React.FC<ParticipantCardProps> = ({
         <div className="ParticipantCard-email">{email}</div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default ParticipantCard
+export default ParticipantCard;
