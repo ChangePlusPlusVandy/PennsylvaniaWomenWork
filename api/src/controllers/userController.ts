@@ -240,7 +240,7 @@ export const getCurrentUserById = async (req: Request, res: Response) => {
 };
 
 export const deleteUser = async (req: Request, res: Response) => {
-  const { menteeId: userId } = req.params;
+  const { userId } = req.params;
 
   console.log("Deleting user: ", userId);
 
