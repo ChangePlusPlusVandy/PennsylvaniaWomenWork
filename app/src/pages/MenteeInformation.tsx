@@ -253,7 +253,6 @@ const MenteeInformation = () => {
       toast.success("Mentee deleted successfully.")
     } catch (err) {
       toast.error("Failed to delete mentee.")
-      console.log("Error deleting mentee:", err);
     } finally {
       setDeleteModal(false)
     }

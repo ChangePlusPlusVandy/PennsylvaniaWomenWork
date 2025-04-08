@@ -7,7 +7,6 @@ import {
   getAllMentees,
   getMentorsForMentee,
 } from "../controllers/menteeController";
-import { deleteUser } from "../controllers/userController";
 import { get } from "http";
 
 const router = express.Router();
@@ -23,7 +22,5 @@ router.get("/get-mentee/:menteeId", getMenteeById);
 router.get("/all-mentees", getAllMentees);
 
 router.get("/:menteeId/mentors", getMentorsForMentee);
-
-router.delete("/delete-mentee/:menteeId", deleteUser);
 
 export default router;
