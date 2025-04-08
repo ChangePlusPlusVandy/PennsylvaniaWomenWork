@@ -1,114 +1,116 @@
-import React, { useEffect, useState } from "react"
-import Navbar from "../components/Navbar"
-import { useUser, User } from "../contexts/UserContext"
-import { useAuth0 } from "@auth0/auth0-react"
-import { api } from "../api"
-import { toast } from "react-hot-toast"
-import { set } from "react-hook-form"
-import { useProfileImage } from "../utils/custom-hooks"
-import ConfirmActionModal from "../components/ConfirmActionModal"
+import React, { useEffect, useState } from "react";
+import Navbar from "../components/Navbar";
+import { useUser, User } from "../contexts/UserContext";
+import { useAuth0 } from "@auth0/auth0-react";
+import { api } from "../api";
+import { toast } from "react-hot-toast";
+import { set } from "react-hook-form";
+import { useProfileImage } from "../utils/custom-hooks";
+import ConfirmActionModal from "../components/ConfirmActionModal";
 
 const Profile = () => {
-  const { user: auth0User, logout } = useAuth0()
-  const { user, error, loading, setUser } = useUser()
+  const { user: auth0User, logout } = useAuth0();
+  const { user, error, loading, setUser } = useUser();
   const [mentorInfo, setMentorInfo] = useState<{
-    first_name: string
-    last_name: string
-    email: string
-  } | null>(null)
-  const [showDeleteModal, setShowDeleteModal] = useState(false)
+    first_name: string;
+    last_name: string;
+    email: string;
+  } | null>(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   useEffect(() => {
     const fetchMentorInfo = async () => {
       if (user && user.role === "mentee") {
         try {
-          const res = await api.get(`/api/mentor/mentor-for-mentee/${user._id}`)
-          setMentorInfo(res.data)
+          const res = await api.get(
+            `/api/mentor/mentor-for-mentee/${user._id}`,
+          );
+          setMentorInfo(res.data);
         } catch (err) {
-          console.error("Error fetching mentor info", err)
+          console.error("Error fetching mentor info", err);
         }
       }
-    }
+    };
 
-    fetchMentorInfo()
-  }, [user])
+    fetchMentorInfo();
+  }, [user]);
 
-  const profileImage = useProfileImage(user?.profile_picture_id)
+  const profileImage = useProfileImage(user?.profile_picture_id);
 
   // Function to compute initials from first and last name
   const getInitials = () => {
-    if (!user) return ""
+    if (!user) return "";
     const firstInitial = user.first_name
       ? user.first_name.charAt(0).toUpperCase()
-      : ""
+      : "";
     const lastInitial = user.last_name
       ? user.last_name.charAt(0).toUpperCase()
-      : ""
-    return firstInitial + lastInitial
-  }
+      : "";
+    return firstInitial + lastInitial;
+  };
 
   const handleImageUpload = async (values: any) => {
     try {
-      console.log("values", values)
+      console.log("values", values);
 
       if (!values.imageUpload) {
-        toast.error("Please select an image")
-        return
+        toast.error("Please select an image");
+        return;
       } else if (values.imageUpload.size > 1 * 1024 * 1024) {
         toast.error("Image size exceeds 1MB. Select a smaller image.", {
           duration: 5000,
-        })
-        return
+        });
+        return;
       } else if (
         !["image/jpeg", "image/png"].includes(values.imageUpload.type)
       ) {
-        toast.error("Invalid image format. Only JPEG, and PNG are allowed.")
-        return
+        toast.error("Invalid image format. Only JPEG, and PNG are allowed.");
+        return;
       }
 
-      let profileImageS3id = null
+      let profileImageS3id = null;
 
       if (values.imageUpload) {
         // Get presigned URL for the pfp
         const pfpImageResponse = await api.get(
-          `/api/workshop/generate-presigned-url/${encodeURIComponent(values.imageUpload.name)}`
-        )
+          `/api/workshop/generate-presigned-url/${encodeURIComponent(values.imageUpload.name)}`,
+        );
 
         const { url: pfpImageUrl, objectKey: pfpImageObjectKey } =
-          pfpImageResponse.data
+          pfpImageResponse.data;
 
         // Upload the profile image to S3
         await fetch(pfpImageUrl, {
           method: "PUT",
           body: values.imageUpload,
           headers: { "Content-Type": values.imageUpload.type },
-        })
+        });
 
-        profileImageS3id = pfpImageObjectKey
+        profileImageS3id = pfpImageObjectKey;
       }
 
       const payload = {
         profile_picture_id: profileImageS3id,
-      }
+      };
 
-      console.log("payload", payload)
+      console.log("payload", payload);
 
       const { status } = await api.put(
         `/api/user/${encodeURIComponent(user!.auth_id)}`,
-        payload
-      )
+        payload,
+      );
 
       if (status === 200) {
-        toast.success("Profile picture updated successfully")
-        setUser({ ...user, profile_picture_id: profileImageS3id } as User)
+        toast.success("Profile picture updated successfully");
+        setUser({ ...user, profile_picture_id: profileImageS3id } as User);
       } else {
-        toast.error("Failed to update profile picture. Please try again.")
+        toast.error("Failed to update profile picture. Please try again.");
       }
     } catch (error) {
-      console.error("Error uploading image:", error)
-      toast.error("Image upload failed. Please try again.")
+      console.error("Error uploading image:", error);
+      toast.error("Image upload failed. Please try again.");
     }
-  }
+  };
 
   const handleDeleteUser = async () => {
     // try {
@@ -123,7 +125,7 @@ const Profile = () => {
     //   console.error("Error deleting account:", error)
     //   toast.error("Account deletion failed. Please try again.")
     // }
-  }
+  };
 
   return (
     <>
@@ -229,8 +231,8 @@ const Profile = () => {
               <div
                 className="Button Button-color--blue-1000 Margin-top--20"
                 onClick={() => {
-                  const returnTo = window.location.origin + "/logout"
-                  logout({ logoutParams: { returnTo } })
+                  const returnTo = window.location.origin + "/logout";
+                  logout({ logoutParams: { returnTo } });
                 }}
               >
                 Log Out
@@ -238,7 +240,7 @@ const Profile = () => {
               <div
                 className="Button Button-color--red-1000 Button--hollow Margin-top--10"
                 onClick={() => {
-                  setShowDeleteModal(true)
+                  setShowDeleteModal(true);
                 }}
               >
                 Delete Account
@@ -250,7 +252,7 @@ const Profile = () => {
         )}
       </div>
     </>
-  )
-}
+  );
+};
 
-export default Profile
+export default Profile;

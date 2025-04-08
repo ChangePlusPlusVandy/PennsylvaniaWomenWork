@@ -5,6 +5,8 @@ import Modal from "../components/Modal"
 import { useUser } from "../contexts/UserContext"
 import { User as AppUser } from "../contexts/UserContext"
 import { api } from "../api"
+import ParticipantCard from "../components/ParticipantCard"
+import FolderCard from "../components/FolderCard"
 import { toast } from "react-hot-toast"
 import Event, {
   EventData,
@@ -12,12 +14,18 @@ import Event, {
   groupEventsByMonth,
   formatEventSubheader,
 } from "../components/Event"
-
+import { Formik, Form, Field } from "formik"
+import TagDropdown from "../components/MultiSelectDropdown"
 import FolderUI from "../components/FolderUI"
-import ParticipantUI from "../components/ParticipantUI"
-import ParticipantCard from "../components/ParticipantCard"
 
-interface User {
+interface Mentee {
+  _id: string
+  first_name: string
+  last_name: string
+  email: string
+}
+
+interface Mentor {
   _id: string
   first_name: string
   last_name: string
@@ -47,8 +55,8 @@ type ImageUrlMap = Record<string, string | null>
 
 const StaffDashboard = () => {
   const navigate = useNavigate()
-  const [mentees, setMentees] = useState<User[]>([])
-  const [mentors, setMentors] = useState<User[]>([])
+  const [mentees, setMentees] = useState<Mentee[]>([])
+  const [mentors, setMentors] = useState<Mentor[]>([])
   const [staffMembers, setStaffMembers] = useState<AppUser[]>([])
   const [boardMembers, setBoardMembers] = useState<AppUser[]>([])
   const [loading, setLoading] = useState(true)
@@ -164,6 +172,12 @@ const StaffDashboard = () => {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
 
+  const eventsByMonth = groupEventsByMonth(events)
+
+  const monthsWithEvents = Object.entries(eventsByMonth).filter(
+    ([_, events]) => events.length > 0
+  )
+
   const fetchImageUrls = async (workshopsData: any) => {
     const urls: ImageUrlMap = {}
 
@@ -189,12 +203,6 @@ const StaffDashboard = () => {
     setImageUrls(urls)
   }
 
-  const eventsByMonth = groupEventsByMonth(events)
-
-  const monthsWithEvents = Object.entries(eventsByMonth).filter(
-    ([_, events]) => events.length > 0
-  )
-
   const handleClick = (menteeId: string) => {
     navigate("/volunteer/participant-information", { state: { menteeId } })
   }
@@ -209,7 +217,7 @@ const StaffDashboard = () => {
 
   const handleMentorClick = (volunteerId: string) => {
     console.log("Mentor ID:", volunteerId)
-    navigate("/volunteer/volunteer-information", {
+    navigate("/particpant/participant-information", {
       state: { volunteerId },
     })
   }

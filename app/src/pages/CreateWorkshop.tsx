@@ -1,23 +1,23 @@
-import React, { useEffect, useState } from "react";
-import { Formik, Form, Field } from "formik";
-import * as Yup from "yup";
-import Navbar from "../components/Navbar";
-import { api } from "../api";
-import Modal from "../components/Modal";
-import AsyncSubmit from "../components/AsyncSubmit";
-import { useNavigate } from "react-router-dom";
-import { url } from "inspector";
-import { toast } from "react-hot-toast";
-import CreatableSelect from "react-select/creatable";
-import makeAnimated from "react-select/animated";
+import React, { useEffect, useState } from "react"
+import { Formik, Form, Field } from "formik"
+import * as Yup from "yup"
+import Navbar from "../components/Navbar"
+import { api } from "../api"
+import Modal from "../components/Modal"
+import AsyncSubmit from "../components/AsyncSubmit"
+import { useNavigate } from "react-router-dom"
+import { url } from "inspector"
+import { toast } from "react-hot-toast"
+import CreatableSelect from "react-select/creatable"
+import makeAnimated from "react-select/animated"
 
-const animatedComponents = makeAnimated();
+const animatedComponents = makeAnimated()
 
 interface FormValues {
-  name: string;
-  description: string;
-  imageUpload: File | null;
-  role: string;
+  name: string
+  description: string
+  imageUpload: File | null
+  role: string
 }
 
 const initialValues: FormValues = {
@@ -25,14 +25,14 @@ const initialValues: FormValues = {
   description: "",
   imageUpload: null,
   role: "",
-};
+}
 
 const roles = [
   { id: "mentee", label: "Participant" },
   { id: "mentor", label: "Volunteer" },
   { id: "staff", label: "Staff" },
   { id: "board", label: "Board" },
-];
+]
 
 // Validation schema using Yup
 const validationSchema = Yup.object().shape({
@@ -42,103 +42,102 @@ const validationSchema = Yup.object().shape({
   imageUpload: Yup.mixed()
     .nullable()
     .test("fileSize", "File size is too large", (value) => {
-      if (!value) return true;
+      if (!value) return true
 
-      const maxSize = 2 * 1024 * 1024; // 2 MB
-      return (value as File).size <= maxSize;
+      const maxSize = 2 * 1024 * 1024 // 2 MB
+      return (value as File).size <= maxSize
     })
     .test(
       "fileType",
       "Unsupported file format. Only JPEG and PNG are allowed.",
       (value) => {
-        if (!value) return true;
+        if (!value) return true
 
-        const supportedFormats = ["image/jpeg", "image/png"];
-        return supportedFormats.includes((value as File).type);
-      },
+        const supportedFormats = ["image/jpeg", "image/png"]
+        return supportedFormats.includes((value as File).type)
+      }
     ),
-});
+})
 
 const CreateWorkshop = () => {
   // Handle form submission
-  const [isModal, setIsModal] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
-  const [fileTitles, setFileTitles] = useState<string[]>([]);
-  const [fileAdded, setFileAdded] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [selectedFiles, setSelectedFiles] = useState<any[]>([]);
+  const [isModal, setIsModal] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [errorMessage, setErrorMessage] = useState("")
+  const [fileTitles, setFileTitles] = useState<string[]>([])
+  const [fileAdded, setFileAdded] = useState(false)
+  const [success, setSuccess] = useState(false)
+  const [selectedFiles, setSelectedFiles] = useState<any[]>([])
   const [fileDetails, setFileDetails] = useState<
     {
-      title: string;
-      desc: string;
-      url: string;
-      s3id: string;
-      file: any;
-      tags: string[];
+      title: string
+      desc: string
+      url: string
+      s3id: string
+      file: any
+      tags: string[]
     }[]
-  >([]);
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [newTagInput, setNewTagInput] = useState("");
+  >([])
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+  const [possibleTags, setPossibleTags] = useState<string[]>([])
 
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
   useEffect(() => {
     const fetchTags = async () => {
       try {
-        const { data } = await api.get("/api/resource/all-tags");
-        setAvailableTags(data || []);
-      } catch (err) {
-        console.error("Failed to load tags:", err);
+        const response = await api.get("/api/board/get-tags")
+        setPossibleTags(response.data)
+      } catch (error) {
+        console.error("Error fetching tags:", error)
       }
-    };
-    fetchTags();
-  }, []);
+    }
+
+    fetchTags()
+  }, [])
 
   const handleSubmit = async (
     values: any,
-    { setSubmitting, resetForm }: any,
+    { setSubmitting, resetForm }: any
   ) => {
-    setSubmitting(true);
+    setSubmitting(true)
     try {
-      let coverImageS3id = null;
+      let coverImageS3id = null
 
       if (values.imageUpload) {
         // Get presigned URL for the cover image
         const coverImageResponse = await api.get(
-          `/api/workshop/generate-presigned-url/${encodeURIComponent(values.imageUpload.name)}`,
-        );
+          `/api/workshop/generate-presigned-url/${encodeURIComponent(values.imageUpload.name)}`
+        )
 
         const { url: coverImageUrl, objectKey: coverImageObjectKey } =
-          coverImageResponse.data;
+          coverImageResponse.data
 
         // Upload the cover image to S3
         await fetch(coverImageUrl, {
           method: "PUT",
           body: values.imageUpload,
           headers: { "Content-Type": values.imageUpload.type },
-        });
+        })
 
-        coverImageS3id = coverImageObjectKey;
+        coverImageS3id = coverImageObjectKey
       }
 
       const payload = {
         name: values.name,
         description: values.description,
         coverImageS3id,
-      };
+      }
       // const { data: workshop } = await api.post("/api/create-workshop", payload);
       const { data: workshop, status } = await api.post(
         "/api/workshop/create-workshop",
-        payload,
-      );
+        payload
+      )
 
       if (status === 201) {
-        toast.success("Workshop created successfully!");
+        toast.success("Workshop created successfully!")
       }
 
-      console.log("Workshop created:", workshop);
       // Add associated files (with placeholder s3id for now)
       if (fileDetails.length > 0) {
         for (const file of fileDetails) {
@@ -146,71 +145,69 @@ const CreateWorkshop = () => {
             method: "PUT",
             body: file.file,
             headers: { "Content-Type": file.file.type },
-          });
-          console.log("Upload response:", uploadResponse);
-          console.log("workshop id", workshop._id);
+          })
           await api.post("/api/resource/create-resource", {
             name: file.title,
             description: file.desc,
             s3id: file.s3id, // Placeholder
             workshopIDs: [workshop.workshop._id], // Link resource to this workshop
             tags: file.tags,
-          });
+          })
         }
       }
       //alert("Workshop created successfully!");
-      resetForm();
-      setFileDetails([]); // Clear file details
-      setSelectedFiles([]);
-      setFileAdded(false);
+      resetForm()
+      setFileDetails([]) // Clear file details
+      setSelectedFiles([])
+      setFileAdded(false)
       // close modal
-      setIsModal(false);
+      setIsModal(false)
       //navigate("/workshops");
     } catch (error) {
-      console.error("Error creating workshop:", error);
+      console.error("Error creating workshop:", error)
       // alert("Failed to create workshop. Please try again.");
-      toast.error("Failed to create folder. Please try again.");
+      toast.error("Failed to create folder. Please try again.")
     } finally {
-      setSubmitting(false);
+      setSubmitting(false)
     }
-  };
+  }
 
   const fileUploadInitialValues = {
     title: "",
     desc: "",
     file: null, // This will not be used until s3 integration
-  };
+  }
 
   const fileValidation = Yup.object().shape({
     title: Yup.string().required("Title is required"),
     desc: Yup.string().required("Description is required"),
     file: Yup.mixed().required("Please select a file"),
-  });
+  })
 
   const handleFileSumbit = async (
     values: any,
-    { resetForm, setFieldValue }: any,
+    { resetForm, setFieldValue }: any
   ) => {
-    setIsLoading(true);
-    setErrorMessage("");
+    setIsLoading(true)
+    setErrorMessage("")
     try {
-      const { title, desc, file } = values;
+      const { title, desc, file } = values
       if (!file) {
-        setErrorMessage("No file selected.");
-        setIsLoading(false);
-        return;
+        setErrorMessage("No file selected.")
+        setIsLoading(false)
+        return
       }
 
       setSelectedFiles((prevFiles) => [
         ...prevFiles,
         { title, description: desc, file },
-      ]);
+      ])
 
       const response = await api.get(
-        `/api/workshop/generate-presigned-url/${encodeURIComponent(file.name)}`,
-      );
+        `/api/workshop/generate-presigned-url/${encodeURIComponent(file.name)}`
+      )
 
-      const { url, objectKey } = response.data;
+      const { url, objectKey } = response.data
 
       // Add file details with a placeholder s3id to the list
       const newFile = {
@@ -220,17 +217,17 @@ const CreateWorkshop = () => {
         s3id: objectKey, // TODO: change
         file: file,
         tags: selectedTags,
-      };
-      setFileDetails((prevDetails) => [...prevDetails, newFile]);
-      setFileAdded(true);
-      resetForm();
+      }
+      setFileDetails((prevDetails) => [...prevDetails, newFile])
+      setFileAdded(true)
+      resetForm()
     } catch (error) {
-      console.error("Error adding file:", error);
-      setErrorMessage("Failed to add file. Please try again.");
+      console.error("Error adding file:", error)
+      setErrorMessage("Failed to add file. Please try again.")
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <>
@@ -252,7 +249,7 @@ const CreateWorkshop = () => {
                     <CreatableSelect
                       components={animatedComponents}
                       isMulti
-                      options={availableTags.map((tag) => ({
+                      options={possibleTags.map((tag) => ({
                         label: tag,
                         value: tag,
                       }))}
@@ -262,17 +259,17 @@ const CreateWorkshop = () => {
                       }))}
                       onChange={(selectedOptions: any) =>
                         setSelectedTags(
-                          selectedOptions.map((opt: any) => opt.value),
+                          selectedOptions.map((opt: any) => opt.value)
                         )
                       }
                       onCreateOption={(inputValue: any) => {
-                        const trimmed = inputValue.trim();
-                        if (!trimmed) return;
-                        if (!availableTags.includes(trimmed)) {
-                          setAvailableTags((prev) => [...prev, trimmed]);
+                        const trimmed = inputValue.trim()
+                        if (!trimmed) return
+                        if (!possibleTags.includes(trimmed)) {
+                          setPossibleTags((prev) => [...prev, trimmed])
                         }
                         if (!selectedTags.includes(trimmed)) {
-                          setSelectedTags((prev) => [...prev, trimmed]);
+                          setSelectedTags((prev) => [...prev, trimmed])
                         }
                       }}
                       placeholder="Select or type to create a tag..."
@@ -327,8 +324,8 @@ const CreateWorkshop = () => {
                       name="file"
                       onChange={(event) => {
                         if (event.currentTarget.files) {
-                          const file = event.currentTarget.files[0];
-                          setFieldValue("file", file);
+                          const file = event.currentTarget.files[0]
+                          setFieldValue("file", file)
                         }
                       }}
                     />
@@ -414,9 +411,9 @@ const CreateWorkshop = () => {
                       accept="image/*"
                       onChange={(event) => {
                         if (event.currentTarget.files) {
-                          const file = event.currentTarget.files[0];
-                          console.log("Selected file:", file);
-                          setFieldValue("imageUpload", file);
+                          const file = event.currentTarget.files[0]
+                          console.log("Selected file:", file)
+                          setFieldValue("imageUpload", file)
                         }
                       }}
                     />
@@ -489,6 +486,6 @@ const CreateWorkshop = () => {
         </div>
       </div>
     </>
-  );
-};
-export default CreateWorkshop;
+  )
+}
+export default CreateWorkshop
