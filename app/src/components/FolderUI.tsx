@@ -1,8 +1,9 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
 import { useNavigate } from "react-router-dom";
 import { Formik, Form, Field } from "formik";
 import FolderCard from "./FolderCard";
 import TagDropdown from "./MultiSelectDropdown";
+import { api } from "../api";
 
 interface Folder {
   _id: string;
@@ -25,6 +26,36 @@ const FolderUI: React.FC<Props> = ({ folders, allTags, imageUrls }) => {
   const handleClick = (id: string) => {
     navigate("/volunteer/workshop-information", { state: { workshopId: id } });
   };
+
+  const [folderImageUrls, setFolderImageUrls] = useState<Record<string, string | null>>({});
+
+  useEffect(() => {
+    const fetchImageUrls = async () => {
+      const newUrls: Record<string, string | null> = {};
+
+      await Promise.all(
+        folders.map(async (folder) => {
+          if (folder.coverImageS3id) {
+            try {
+              const res = await api.get(`/api/resource/getURL/${folder.coverImageS3id}`);
+              newUrls[folder.coverImageS3id] = res.data?.signedUrl || null;
+            } catch (error) {
+              console.error(`Failed to fetch URL for ${folder.coverImageS3id}:`, error);
+              newUrls[folder.coverImageS3id] = null;
+            }
+          }
+        })
+      );
+
+      setFolderImageUrls(newUrls);
+    };
+
+    if (folders.length > 0) {
+      fetchImageUrls();
+    } else {
+      setFolderImageUrls({});
+    }
+  }, [folders]);
 
   return (
     <Formik initialValues={{ tags: [], search: "" }} onSubmit={() => {}}>
@@ -100,7 +131,7 @@ const FolderUI: React.FC<Props> = ({ folders, allTags, imageUrls }) => {
                       description={folder.description}
                       imageUrl={
                         folder.coverImageS3id
-                          ? (imageUrls?.[folder.coverImageS3id] ?? null)
+                          ? (folderImageUrls?.[folder.coverImageS3id] ?? null)
                           : null
                       }
                       tags={folder.tags}
