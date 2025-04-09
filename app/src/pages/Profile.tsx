@@ -113,18 +113,22 @@ const Profile = () => {
   };
 
   const handleDeleteUser = async () => {
-    // try {
-    //   const response = ""
-    //   if (response.status === 200) {
-    //     toast.success("Account deleted successfully")
-    //     setShowDeleteModal(false)
-    //   } else {
-    //     toast.error("Failed to delete account. Please try again.")
-    //   }
-    // } catch (error) {
-    //   console.error("Error deleting account:", error)
-    //   toast.error("Account deletion failed. Please try again.")
-    // }
+    try {
+      console.log("Deleting user", user);
+      await api.delete(`/api/user/${encodeURIComponent(user!.auth_id)}`);
+      toast.success("Deletion complete. Redirecting to login...");
+      await logout({
+        logoutParams: {
+          returnTo: window.location.origin + "/logout",
+        },
+      });
+    } catch (err) {
+      toast.error("Deletion failed. Contact admin.", {
+        duration: 5000,
+      });
+    } finally {
+      setShowDeleteModal(false);
+    }
   };
 
   return (

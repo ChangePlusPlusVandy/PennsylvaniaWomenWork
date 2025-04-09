@@ -316,7 +316,7 @@ const MenteeInformation = () => {
 
   const handleDeleteMentee = async (userId: string) => {
     try {
-      await api.delete(`/api/mentee/delete-mentee/${userId}`);
+      await api.delete(`/api/user/${encodeURIComponent(user!.auth_id)}`);
       navigate("/home");
     } catch (err) {
       toast.error("Failed to delete mentee.");

@@ -265,7 +265,7 @@ export const getCurrentUserById = async (req: Request, res: Response) => {
 };
 
 export const deleteUser = async (req: Request, res: Response) => {
-  const { menteeId: userId } = req.params;
+  const { userId } = req.params;
 
   console.log("Deleting user: ", userId);
 
@@ -287,8 +287,6 @@ export const deleteUser = async (req: Request, res: Response) => {
       console.log("Auth user deletion failed. Response: ", authDeletedUser);
       throw new Error("Failed to delete auth user");
     }
-
-    console.log("Deleted auth: ", authDeletedUser);
 
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
