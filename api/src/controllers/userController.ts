@@ -263,8 +263,6 @@ export const deleteUser = async (req: Request, res: Response) => {
       throw new Error("Failed to delete auth user");
     }
 
-    console.log("Deleted auth: ", authDeletedUser);
-
     res.status(200).json({ message: "User deleted successfully" });
   } catch (error) {
     console.error("Error deleting user:", error);
