@@ -45,6 +45,7 @@ export const createUser = async (userInfo: dbUserInfo) => {
       auth_id: sub,
       first_name,
       last_name,
+      username,
       email,
       role,
       workshops: role === "mentor" ? workshops : undefined,
