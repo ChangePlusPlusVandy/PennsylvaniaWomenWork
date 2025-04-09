@@ -226,19 +226,20 @@
   }
 
   &-name {
-    font-size: var(--pww-font-size-20);
+    font-size: var(--pww-font-size-18);
     font-weight: 800;
-    padding: 4px 5px;
+    padding: 8px 5px; // more vertical padding for visual centering
     border-bottom: 1px solid var(--pww-color-gray-200);
     margin-bottom: 10px;
     height: 50px;
-    // align the text vertically in the center
     display: flex;
     align-items: center;
-    // wrap the text on two lines and scroll if overflow
+
+
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    word-break: break-word;
+    line-height: 1.2; // adjust for balance
   }
 
   &-description {
