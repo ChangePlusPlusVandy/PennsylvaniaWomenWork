@@ -3,6 +3,7 @@ import {
   generatePresignedUrl,
   createBoardFile,
   getBoardFiles,
+  getAllTags,
 } from "../controllers/boardFileController";
 
 const router = express.Router();
@@ -15,5 +16,8 @@ router.post("/create-board-file", createBoardFile);
 
 // Route to get all board files
 router.get("/get-files", getBoardFiles);
+
+// Route to get all tags
+router.get("/get-tags", getAllTags);
 
 export default router;

@@ -75,3 +75,18 @@ export const getBoardFiles = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error retrieving board files", error });
   }
 };
+
+export const getAllTags = async (req: Request, res: Response) => {
+  try {
+    // Find all board files and get their tags
+    const files = await BoardFile.find({}, "tags");
+
+    // Flatten the array of tag arrays and get unique values
+    const uniqueTags = [...new Set(files.flatMap((file) => file.tags))].sort();
+
+    res.status(200).json(uniqueTags);
+  } catch (error) {
+    console.error("Error retrieving tags:", error);
+    res.status(500).json({ message: "Error retrieving tags", error });
+  }
+};

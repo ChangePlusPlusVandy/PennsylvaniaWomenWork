@@ -11,6 +11,7 @@ import {
   deleteUser,
   getAllStaff,
   getAllBoard,
+  getUserById,
 } from "../controllers/userController";
 
 const router = express.Router();
@@ -36,5 +37,7 @@ router.delete("/:userId", deleteUser);
 
 router.get("/all-staff", getAllStaff);
 router.get("/all-board", getAllBoard);
+
+router.get("/:userId", getUserById);
 
 export default router;

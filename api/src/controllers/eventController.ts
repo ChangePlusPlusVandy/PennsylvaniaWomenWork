@@ -106,3 +106,34 @@ export const deleteEvent = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error deleting event", error });
   }
 };
+
+export const getEventsBetweenUsers = async (req: Request, res: Response) => {
+  try {
+    const { user1Id, user2Id } = req.body;
+
+    if (!user1Id || !user2Id) {
+      return res.status(400).json({
+        message: "Both user IDs are required in the URL",
+      });
+    }
+
+    const objectIds = [user1Id, user2Id].map((id) => {
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        throw new Error(`Invalid ObjectId: ${id}`);
+      }
+      return new mongoose.Types.ObjectId(id);
+    });
+
+    const events = await Event.find({
+      users: { $all: objectIds },
+    });
+
+    return res.status(200).json(events);
+  } catch (error) {
+    console.error("Error retrieving shared events:", error);
+    res.status(500).json({
+      message: "Error retrieving shared events",
+      error,
+    });
+  }
+};

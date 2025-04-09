@@ -1,75 +1,59 @@
-import React, { useState, useEffect } from "react"
-import Navbar from "../components/Navbar"
-import Modal from "../components/Modal"
-import { useNavigate } from "react-router-dom"
-import { api } from "../api"
+import React, { useState, useEffect } from "react";
+import Navbar from "../components/Navbar";
+import Modal from "../components/Modal";
+import { api } from "../api";
 import Event, {
   EventData,
   parseEvents,
   groupEventsByMonth,
   formatEventSubheader,
-} from "../components/Event"
-import { useUser } from "../contexts/UserContext"
-import { useAuth0 } from "@auth0/auth0-react"
-import Icon from "../components/Icon" // Adjust the path based on your project structure
-import TagDropdown from "../components/MultiSelectDropdown"
-import { Formik, Form, Field } from "formik"
-import FolderUI from "../components/FolderUI"
-
-import FolderCard from "../components/FolderCard"
+} from "../components/Event";
+import { useUser } from "../contexts/UserContext";
+import FolderUI from "../components/FolderUI";
 
 interface Folder {
-  _id: string
-  name: string
-  description: string
-  s3id: string
-  coverImageS3id?: string
-  tags?: string[]
+  _id: string;
+  name: string;
+  description: string;
+  s3id: string;
+  coverImageS3id?: string;
+  tags?: string[];
 }
 
 const BoardDashboard = () => {
-  const navigate = useNavigate()
-  const [events, setEvents] = useState<EventData[]>([])
-  const [folders, setFolders] = useState<Folder[]>([])
-  const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null)
-  const { user } = useUser()
-  const userId = user?._id
-  const [selectedTags, setSelectedTags] = useState<string[]>([])
-  const possibleTags = ["planning", "governance", "strategy"]
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [allTags, setAllTags] = useState<string[]>([])
-
-  useEffect(() => {
-    setAllTags(["Finance", "Wellness", "Education", "Tech"])
-  }, [])
+  const [events, setEvents] = useState<EventData[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
+  const { user } = useUser();
+  const userId = user?._id;
+  const [possibleTags, setPossibleTags] = useState<string[]>([]);
 
   const formattedSubheader = selectedEvent
     ? formatEventSubheader(selectedEvent)
-    : ""
+    : "";
 
-  const eventsByMonth = groupEventsByMonth(events)
+  const eventsByMonth = groupEventsByMonth(events);
 
   useEffect(() => {
-    if (!userId) return
+    if (!userId) return;
 
     const fetchEvents = async () => {
       try {
-        const response = await api.get(`/api/event/${userId}`)
-        const parsed = parseEvents(response.data)
-        setEvents(parsed)
+        const response = await api.get(`/api/event/${userId}`);
+        const parsed = parseEvents(response.data);
+        setEvents(parsed);
       } catch (error) {
-        console.error("Error fetching events:", error)
+        console.error("Error fetching events:", error);
       }
-    }
+    };
 
-    fetchEvents()
-  }, [userId])
+    fetchEvents();
+  }, [userId]);
 
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        const response = await api.get(`/api/board/get-files`)
+        const response = await api.get(`/api/board/get-files`);
         setFolders(
           response.data.map((file: any) => ({
             _id: file._id, // <-- this was missing!
@@ -77,25 +61,32 @@ const BoardDashboard = () => {
             description: file.description,
             s3id: file.s3id,
             tags: file.tags || [],
-          }))
-        )
+          })),
+        );
       } catch (error) {
-        console.error("Error fetching board files:", error)
+        console.error("Error fetching board files:", error);
       }
-    }
+    };
 
-    fetchFiles()
-  }, [])
+    fetchFiles();
+  }, []);
 
-  const handleFileClick = (workshopId: string) => {
-    navigate(`/volunteer/workshop-information`, {
-      state: { workshopId },
-    })
-  }
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const response = await api.get("/api/board/get-tags");
+        setPossibleTags(response.data);
+      } catch (error) {
+        console.error("Error fetching tags:", error);
+      }
+    };
+
+    fetchTags();
+  }, []);
 
   const handleEventClick = (event: EventData) => {
-    setSelectedEvent(event)
-  }
+    setSelectedEvent(event);
+  };
 
   return (
     <>
@@ -135,7 +126,11 @@ const BoardDashboard = () => {
               <div className="Block-subtitle">
                 Select a file to access materials.
               </div>
-              <FolderUI folders={folders} allTags={allTags} imageUrls={{}} />
+              <FolderUI
+                folders={folders}
+                allTags={possibleTags}
+                imageUrls={{}}
+              />
             </div>
           </div>
           <div className="col-lg-4">
@@ -155,7 +150,7 @@ const BoardDashboard = () => {
         </div>
       </div>
     </>
-  )
-}
+  );
+};
 
-export default BoardDashboard
+export default BoardDashboard;

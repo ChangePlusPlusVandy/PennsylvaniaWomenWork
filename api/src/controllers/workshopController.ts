@@ -42,7 +42,7 @@ export const generatePresignedUrl = async (req: Request, res: Response) => {
 };
 
 export const createWorkshop = async (req: Request, res: Response) => {
-  const { name, description, s3id, coverImageS3id } = req.body;
+  const { name, description, s3id, coverImageS3id, tags } = req.body;
 
   if (!name || !description) {
     return res.status(400).json({ message: "Missing required fields" });
@@ -54,6 +54,7 @@ export const createWorkshop = async (req: Request, res: Response) => {
       description,
       s3id,
       coverImageS3id,
+      tags: tags || [],
     });
     const savedWorkshop = await newWorkshop.save();
 
@@ -181,5 +182,21 @@ export const getWorkshopById = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error fetching workshop:", error);
     res.status(500).json({ message: "Error retrieving workshop", error });
+  }
+};
+
+export const getAllTags = async (req: Request, res: Response) => {
+  try {
+    // Use distinct to get unique tags directly from MongoDB
+    // not everything in workshops has tags as a field
+    const tags = await Workshop.distinct("tags");
+
+    // Filter out null/undefined and sort
+    const validTags = tags.filter((tag) => tag).sort();
+
+    res.status(200).json(validTags);
+  } catch (error) {
+    console.error("Error retrieving workshop tags:", error);
+    res.status(500).json({ message: "Error retrieving workshop tags", error });
   }
 };

@@ -301,3 +301,24 @@ export const getAllBoard = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Error retrieving board", error });
   }
 };
+
+export const getUserById = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.userId; // ⬅️ make sure this matches
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const user = await User.findById(userId); // ⬅️ this expects a valid ObjectId
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error getting user by ID:", error);
+    res.status(500).json({ message: "Server error", error });
+  }
+};

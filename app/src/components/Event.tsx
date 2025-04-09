@@ -16,7 +16,7 @@ export interface EventData {
 interface EventProps {
   month: string;
   events: EventData[];
-  onEventClick: (event: EventData) => void;
+  onEventClick?: (event: EventData) => void;
 }
 
 const Event = ({ month, events, onEventClick }: EventProps) => {
@@ -50,7 +50,7 @@ const Event = ({ month, events, onEventClick }: EventProps) => {
           <div
             key={event._id}
             className="Event-item"
-            onClick={() => onEventClick(event)}
+            onClick={() => onEventClick && onEventClick(event)}
           >
             <div className="Event-item-date">
               <div className="day">{dayOfMonth}</div>

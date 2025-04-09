@@ -6,7 +6,7 @@ import ConfirmLogout from "./pages/ConfirmLogout";
 import CreateWorkshop from "./pages/CreateWorkshop";
 import CreateMeeting from "./pages/CreateMeeting";
 import CreateEvent from "./pages/CreateEvent";
-import MenteeInformation from "./pages/MenteeInformation";
+import UserInformation from "./pages/UserInformation";
 import WorkshopInformation from "./pages/WorkshopInformation";
 import AuthCallback from "./pages/auth-callback";
 import LoginRedirect from "./pages/LoginRedirect";
@@ -15,7 +15,6 @@ import Profile from "./pages/Profile";
 import SampleMenteeInvite from "./pages/MenteeInvite";
 import ProtectedRoute from "./components/ProtectedRoute";
 import BoardDashboard from "./pages/BoardDashboard";
-import VolunteerInformation from "./pages/MentorInformation";
 import { useAuth0 } from "@auth0/auth0-react";
 import { useUser } from "./contexts/UserContext";
 import { roles } from "./utils/roles";
@@ -114,21 +113,11 @@ function App(): ReactElement {
       <Route path="/profile" element={<Profile />} />
 
       <Route
-        path="/volunteer/participant-information"
-        element={
-          <ProtectedRoute
-            element={<MenteeInformation />}
-            allowedRoles={[roles.volunteer, roles.staff]}
-          />
-        }
-      />
-
-      <Route
         path="/participant/participant-information"
         element={
           <ProtectedRoute
-            element={<VolunteerInformation />}
-            allowedRoles={[roles.staff, roles.board]}
+            element={<UserInformation />}
+            allowedRoles={[roles.volunteer, roles.staff]}
           />
         }
       />

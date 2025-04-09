@@ -11,6 +11,13 @@ import { toast } from "react-hot-toast";
 import { set } from "react-hook-form";
 import { useProfileImage } from "../utils/custom-hooks";
 import ConfirmActionModal from "../components/ConfirmActionModal";
+import { Spinner } from "react-bootstrap";
+import Event, {
+  EventData,
+  parseEvents,
+  groupEventsByMonth,
+  formatEventSubheader,
+} from "../components/Event";
 
 interface Workshop {
   _id: string;
@@ -25,7 +32,7 @@ interface MenteeInfo {
   first_name: string;
   last_name: string;
   email: string;
-  role: string;
+  role: "mentee" | "mentor" | "staff" | "board"; // Explicitly define possible roles
   mentor?: string;
   workshops: string[]; // Array of workshop names
   profile_picture_id: string | null;
@@ -42,8 +49,8 @@ interface MentorInfo {
 const MenteeInformation = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const menteeId = location.state?.menteeId;
-  const [mentee, setMentee] = useState<MenteeInfo | null>(null);
+  const userId = location.state?._id;
+  const [currUser, setCurrUser] = useState<MenteeInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isModal, setIsModal] = useState(false);
@@ -54,43 +61,69 @@ const MenteeInformation = () => {
   const [mentorInfo, setMentorInfo] = useState<MentorInfo | null>(null);
   const [isAssignMentorModal, setIsAssignMentorModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
+  const profileImage = useProfileImage(currUser?.profile_picture_id);
+  const [mentees, setMentees] = useState<MenteeInfo[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
 
-  const profileImage = useProfileImage(mentee?.profile_picture_id);
+  const roleMap: Record<string, string> = {
+    board: "Board Member",
+    mentee: "Participant",
+    mentor: "Volunteer",
+    staff: "Staff Member",
+  };
+
+  const roleType = currUser?.role ? roleMap[currUser.role] : "User";
 
   useEffect(() => {
-    if (!menteeId) {
-      console.log("Mentee ID is missing.");
-      setLoading(false);
-      return;
-    }
+    const fetch = async () => {
+      try {
+        const { data } = await api.get(`/api/user/${userId}`);
+        setCurrUser(data);
+      } catch (err) {
+        console.error("Failed to fetch user:", err);
+      }
+    };
 
+    if (userId) fetch();
+  }, [userId]);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const response = await api.post("/api/event/meetings-between-users", {
+          user1Id: user?._id,
+          user2Id: userId,
+        });
+        setEvents(response.data);
+      } catch (err) {
+        console.error("Failed to fetch events:", err);
+      }
+    };
+
+    if (user?._id && userId) {
+      fetchEvents();
+    }
+  }, [user?._id, userId]);
+
+  useEffect(() => {
     const fetchMenteeData = async () => {
       try {
-        // Fetch mentee details
         const menteeResponse = await api.get(
-          `/api/mentee/get-mentee/${menteeId}`,
+          `/api/mentee/get-mentee/${userId}`,
         );
-        setMentee(menteeResponse.data);
-        // If the mentee has an assigned mentor, fetch mentor details
+        setCurrUser(menteeResponse.data);
+
         if (menteeResponse.data.mentor_id) {
-          try {
-            const mentorRes = await api.get(
-              `/api/mentor/mentor-for-mentee/${menteeResponse.data._id}`,
-            );
-            setMentorInfo(mentorRes.data);
-          } catch (err) {
-            console.error("Failed to fetch mentor info", err);
-          }
+          const mentorRes = await api.get(
+            `/api/mentor/mentor-for-mentee/${menteeResponse.data._id}`,
+          );
+          setMentorInfo(mentorRes.data);
         }
 
-        // Fetch workshops assigned to this mentee
         const workshopsResponse = await api.get(
-          `/api/mentee/${menteeId}/workshops`,
+          `/api/mentee/${userId}/workshops`,
         );
         setAssignedWorkshops(workshopsResponse.data);
-
-        console.log("Mentee data:", menteeResponse.data);
-        console.log("Assigned workshops:", workshopsResponse.data);
       } catch (err) {
         setError("Failed to load mentee details.");
         console.error("Error fetching mentee data:", err);
@@ -99,8 +132,42 @@ const MenteeInformation = () => {
       }
     };
 
-    fetchMenteeData();
-  }, [menteeId]);
+    if (currUser?.role === "mentee" && userId) fetchMenteeData();
+  }, [userId, currUser?.role]);
+
+  useEffect(() => {
+    const fetchMenteesForMentor = async () => {
+      try {
+        const response = await api.get(`/api/mentor/${userId}/mentees`);
+        setMentees(response.data.mentees); // 👈 extract the actual array
+      } catch (err) {
+        console.error("Failed to fetch mentees for mentor:", err);
+      }
+    };
+
+    if (currUser?.role === "mentor" && userId) {
+      fetchMenteesForMentor();
+    }
+  }, [currUser?.role, userId]);
+
+  useEffect(() => {
+    const fetchMentorData = async () => {
+      try {
+        const mentorId = currUser?.mentor;
+        if (!mentorId) return;
+
+        const response = await api.get(`/api/mentor/get-mentor/${mentorId}`);
+        setMentorInfo(response.data);
+      } catch (err) {
+        setError("Failed to load mentor details.");
+        console.error("Error fetching mentor data:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (currUser?.role === "mentee") fetchMentorData();
+  }, [currUser?.role, currUser?.mentor]);
 
   useEffect(() => {
     const fetchWorkshops = async () => {
@@ -111,9 +178,10 @@ const MenteeInformation = () => {
         console.error("Error fetching workshops:", err);
       }
     };
-    fetchWorkshops();
-  }, []);
+    if (currUser?.role === "mentee") fetchWorkshops();
+  }, [currUser?.role]);
 
+  // i only want to do this if this is a staff member
   useEffect(() => {
     // pull in all mentors
     const fetchMentors = async () => {
@@ -126,7 +194,7 @@ const MenteeInformation = () => {
       }
     };
     fetchMentors();
-  }, [menteeId]);
+  }, [userId]);
 
   const initialValues = {
     courseName: "",
@@ -141,7 +209,7 @@ const MenteeInformation = () => {
     { setSubmitting }: any,
   ) => {
     try {
-      if (!menteeId) {
+      if (!userId) {
         console.error("Mentee ID is missing.");
         setSubmitting(false);
         return;
@@ -151,7 +219,7 @@ const MenteeInformation = () => {
         "Assigning workshop:",
         values.courseName,
         "to mentee:",
-        menteeId,
+        userId,
       );
 
       const payload = {
@@ -161,7 +229,7 @@ const MenteeInformation = () => {
       console.log("Sending payload:", payload);
 
       const response = await api.put(
-        `/api/mentee/${menteeId}/add-workshop`,
+        `/api/mentee/${userId}/add-workshop`,
         payload,
       );
 
@@ -169,10 +237,8 @@ const MenteeInformation = () => {
 
       if (response.status === 200) {
         toast.success("Workshop assigned successfully!");
-        const updatedMentee = await api.get(
-          `/api/mentee/get-mentee/${menteeId}`,
-        );
-        setMentee(updatedMentee.data);
+        const updatedMentee = await api.get(`/api/mentee/get-mentee/${userId}`);
+        setCurrUser(updatedMentee.data);
         setIsModal(false);
       } else {
         throw new Error("Failed to assign workshop");
@@ -196,7 +262,7 @@ const MenteeInformation = () => {
     { setSubmitting }: any,
   ) => {
     try {
-      if (!menteeId) {
+      if (!userId) {
         toast.error("No mentee selected");
         setSubmitting(false);
         return;
@@ -205,17 +271,15 @@ const MenteeInformation = () => {
       const response = await api.put(
         `/api/mentor/${values.mentorName}/assign-mentee`,
         {
-          menteeId: menteeId,
+          menteeId: userId,
         },
       );
 
       if (response.status === 200) {
         toast.success("Mentor assigned successfully");
         // Refresh mentee data to show new mentor
-        const menteeResponse = await api.get(
-          `/api/mentee/get-mentee/${menteeId}`,
-        );
-        setMentee(menteeResponse.data);
+        const menteeResponse = await api.get(`/api/user/${userId}`);
+        setCurrUser(menteeResponse.data);
       }
 
       setIsAssignMentorModal(false);
@@ -229,22 +293,28 @@ const MenteeInformation = () => {
 
   // Compute initials for the mentee's avatar
   const getInitials = () => {
-    if (!mentee) return "";
+    if (!currUser) return "";
     return (
-      mentee.first_name.charAt(0).toUpperCase() +
-      mentee.last_name.charAt(0).toUpperCase()
+      currUser.first_name.charAt(0).toUpperCase() +
+      currUser.last_name.charAt(0).toUpperCase()
     );
   };
 
+  // event logic
+  const eventsByMonth = groupEventsByMonth(events);
+  const monthsWithEvents = Object.entries(eventsByMonth).filter(
+    ([_, events]) => events.length > 0,
+  );
+
   if (loading) {
-    return <div>Loading...</div>;
+    <Spinner />;
   }
 
   if (error) {
     return <div>{error}</div>;
   }
 
-  const handleDeleteMentee = async (menteeId: string) => {
+  const handleDeleteMentee = async (userId: string) => {
     try {
       await api.delete(`/api/user/${encodeURIComponent(user!.auth_id)}`);
       navigate("/home");
@@ -261,10 +331,10 @@ const MenteeInformation = () => {
       {deleteModal && (
         <ConfirmActionModal
           isOpen={deleteModal}
-          title="Delete Participant"
-          message="Are you sure you want to delete this participant? This action cannot be undone."
+          title="Delete User"
+          message="Are you sure you want to delete this user? This action cannot be undone."
           confirmLabel="Delete Volunteer"
-          onConfirm={() => handleDeleteMentee(menteeId)}
+          onConfirm={() => handleDeleteMentee(userId)}
           onCancel={() => setDeleteModal(false)}
           isDanger
         />
@@ -281,9 +351,9 @@ const MenteeInformation = () => {
             <Icon glyph="chevron-left" className="Text-colorHover--teal-1000" />
           </div>
 
-          {/* if there is no menteeid in the store, display message */}
+          {/* if there is no userId in the store, display message */}
 
-          {!menteeId ? (
+          {!userId ? (
             <div className="col-lg-12 ">No particpant selected.</div>
           ) : (
             <>
@@ -291,8 +361,8 @@ const MenteeInformation = () => {
               {/* Column 1: Mentee Information Block */}
               <div className="col-lg-4 mb-4">
                 <div className="Block">
-                  <div className="Block-header">Participant Information</div>
-                  <div className="Block-subtitle">Participant Details</div>
+                  <div className="Block-header">{roleType} Information</div>
+                  <div className="Block-subtitle">{roleType} Details</div>
                   <div className="Block-content">
                     <div className="Profile-avatar">
                       {profileImage ? (
@@ -311,100 +381,120 @@ const MenteeInformation = () => {
                     <div className="Profile-field">
                       <div className="Profile-field-label">Name:</div>
                       <div>
-                        {mentee?.first_name} {mentee?.last_name}
+                        {currUser?.first_name} {currUser?.last_name}
                       </div>
                     </div>
                     <div className="Profile-field">
                       <div className="Profile-field-label">Role:</div>
-                      <div>{mentee?.role}</div>
+                      <div>{currUser?.role}</div>
                     </div>
                     <div className="Profile-field">
                       <div className="Profile-field-label">Email:</div>
-                      <div>{mentee?.email}</div>
+                      <div>{currUser?.email}</div>
                     </div>
-                    {mentorInfo ? (
+                    {currUser?.role === "mentee" && (
                       <>
-                        <div
-                          style={{
-                            fontWeight: "600",
-                            fontSize: "1rem",
-                            marginTop: "1rem",
-                            marginBottom: "0.5rem",
-                            color: "#333",
-                          }}
-                        >
-                          Volunteer Info:
-                        </div>
-                        <div className="Profile-field">
-                          <div
-                            className="Profile-field-label"
-                            style={{ fontWeight: "500" }}
-                          >
-                            Name:
-                          </div>
-                          <div>
-                            {mentorInfo.first_name} {mentorInfo.last_name}
-                          </div>
-                        </div>
-                        <div className="Profile-field">
-                          <div
-                            className="Profile-field-label"
-                            style={{ fontWeight: "500" }}
-                          >
-                            Email:
-                          </div>
-                          <div>{mentorInfo.email}</div>
-                        </div>
-                        <div
-                          className="Button Button-color--blue-1000 Width--100"
-                          onClick={() => setIsAssignMentorModal(true)}
-                          style={{ marginTop: "1rem" }}
-                        >
-                          Change Volunteer
-                        </div>
+                        {mentorInfo ? (
+                          <>
+                            <label>Volunteer:</label>
+                            <div className="Profile-field">
+                              <div
+                                className="Profile-field-label"
+                                style={{ fontWeight: "500" }}
+                              >
+                                Name:
+                              </div>
+                              <div>
+                                {mentorInfo.first_name} {mentorInfo.last_name}
+                              </div>
+                            </div>
+                            <div className="Profile-field">
+                              <div
+                                className="Profile-field-label"
+                                style={{ fontWeight: "500" }}
+                              >
+                                Email:
+                              </div>
+                              <div>{mentorInfo.email}</div>
+                            </div>
+                            {user?.role === "staff" && (
+                              <div
+                                className="Button Button-color--blue-1000"
+                                onClick={() => setIsAssignMentorModal(true)}
+                                style={{ marginTop: "1rem" }}
+                              >
+                                Change Volunteer
+                              </div>
+                            )}
+                          </>
+                        ) : (
+                          user?.role === "staff" && (
+                            <div
+                              className="Button Button-color--blue-1000"
+                              onClick={() => setIsAssignMentorModal(true)}
+                            >
+                              Assign Volunteer
+                            </div>
+                          )
+                        )}
                       </>
-                    ) : (
-                      <div
-                        className="Button Button-color--blue-1000 Width--100"
-                        onClick={() => setIsAssignMentorModal(true)}
-                      >
-                        Assign Volunteer
-                      </div>
                     )}
                   </div>
                 </div>
               </div>
               {/* Column 2: Mentee Courses */}
               <div className="col-lg-4 mb-4">
-                <div className="Block">
-                  <div className="Block-header">Participant Files</div>
-                  <div className="Block-subtitle">
-                    Files assigned to {mentee?.first_name}
-                  </div>
-                  {assignedWorkshops.length > 0 ? (
-                    <div className="Flex-col">
-                      {assignedWorkshops.map((workshop) => (
-                        <div key={workshop._id} className="Profile-field">
-                          {workshop.name}
-                        </div>
-                      ))}
+                {roleType === "Participant" && (
+                  <div className="Block Margin-bottom--20">
+                    <div className="Block-header">{roleType} Files</div>
+                    <div className="Block-subtitle">
+                      Folders assigned to {currUser?.first_name}
                     </div>
-                  ) : (
-                    <p>No files assigned.</p>
-                  )}
-                  {(user?.role === "staff" || user?.role === "mentor") && (
-                    <button
-                      className="Button Button-color--blue-1000 Width--100"
-                      onClick={() => setIsModal(true)}
-                    >
-                      Assign New Course
-                    </button>
-                  )}
-                </div>
-                <div className="Block Margin-top--20">
-                  <div className="Block-header">Delete Participant</div>
+                    {assignedWorkshops.length > 0 ? (
+                      <div className="Flex-col">
+                        {assignedWorkshops.map((workshop) => (
+                          <div key={workshop._id} className="Profile-field">
+                            {workshop.name}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p>No folders assigned.</p>
+                    )}
+                    {user?.role === "staff" && (
+                      <button
+                        className="Button Button-color--blue-1000 Width--100"
+                        onClick={() => setIsModal(true)}
+                      >
+                        Assign New Course
+                      </button>
+                    )}
+                  </div>
+                )}
+                {roleType === "Volunteer" && (
+                  <div className="Block Margin-bottom--20">
+                    <div className="Block-header">Assigned Mentees</div>
+                    <div className="Block-subtitle">
+                      Mentees working with {currUser?.first_name}
+                    </div>
+                    {(mentees ?? []).length > 0 ? (
+                      <div className="Flex-col">
+                        {mentees.map((mentee) => (
+                          <div key={mentee._id} className="Profile-field">
+                            {mentee.first_name} {mentee.last_name}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p>No mentees assigned.</p>
+                    )}
+                  </div>
+                )}
+
+                <div className="Block">
+                  <div className="Block-header">Delete {roleType}</div>
                   <div className="Block-subtitle">
-                    Permanently remove this participant from the system.
+                    Permanently remove this {roleType} from the network.
                   </div>
                   <button
                     className="Button Button-color--red-1000 Button--hollow Width--100"
@@ -412,7 +502,7 @@ const MenteeInformation = () => {
                       setDeleteModal(true);
                     }}
                   >
-                    Delete Participant
+                    Delete {roleType}
                   </button>
                 </div>
               </div>
@@ -421,28 +511,17 @@ const MenteeInformation = () => {
                 <div className="Block">
                   <div className="Block-header">Upcoming Meetings</div>
                   <div className="Block-subtitle">
-                    Your meetings with {mentee?.first_name}
+                    Your meetings with {currUser?.first_name}
                   </div>
-                  {/* Example static meeting item */}
-                  <div className="d-flex align-items-center mb-3">
-                    <div className="me-3 text-center" style={{ width: "40px" }}>
-                      <div className="text-muted">Wed</div>
-                      <div style={{ fontSize: "1.5rem", color: "#343a40" }}>
-                        25
-                      </div>
-                    </div>
-                    <div>
-                      <div>Mock Interview Session</div>
-                      <div
-                        className="text-muted"
-                        style={{ fontSize: "0.9rem" }}
-                      >
-                        Practice your interview skills with a professional.
-                      </div>
-                    </div>
-                  </div>
+                  {monthsWithEvents.length === 0 ? (
+                    <div className="Text--center">No upcoming events</div>
+                  ) : (
+                    monthsWithEvents.map(([month, monthEvents]) => (
+                      <Event key={month} month={month} events={monthEvents} />
+                    ))
+                  )}
                   <button
-                    className="Button Button-color--blue-1000 Width--100"
+                    className="Button Button-color--blue-1000 Margin-top--20 Width--100"
                     onClick={() => navigate("/create-meeting")}
                   >
                     Add New Meeting
@@ -455,7 +534,7 @@ const MenteeInformation = () => {
       </div>
       {isAssignMentorModal && (
         <Modal
-          header={`Assign a volunteer for ${mentee?.first_name} ${mentee?.last_name}`}
+          header={`Assign a volunteer for ${currUser?.first_name} ${currUser?.last_name}`}
           action={() => setIsAssignMentorModal(false)}
           body={
             <Formik

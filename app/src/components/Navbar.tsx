@@ -25,13 +25,13 @@ const Navbar = (): ReactElement => {
     {
       path: "/create-meeting",
       label: "Create Meeting",
-      roles: [roles.staff, roles.volunteer, roles.board],
+      roles: [roles.staff, roles.volunteer],
     },
     { path: "/create-event", label: "Create Event", roles: [roles.staff] },
     {
       path: "/invite",
       label: "Invite User",
-      roles: [roles.staff, roles.board],
+      roles: [roles.staff],
     },
     {
       path: "/profile",

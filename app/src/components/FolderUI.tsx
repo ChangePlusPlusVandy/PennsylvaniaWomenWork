@@ -1,30 +1,68 @@
-import React from "react"
-import { useNavigate } from "react-router-dom"
-import { Formik, Form, Field } from "formik"
-import FolderCard from "./FolderCard"
-import TagDropdown from "./MultiSelectDropdown"
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Formik, Form, Field } from "formik";
+import FolderCard from "./FolderCard";
+import TagDropdown from "./MultiSelectDropdown";
+import { api } from "../api";
 
 interface Folder {
-  _id: string
-  name: string
-  description: string
-  s3id: string
-  coverImageS3id?: string
-  tags?: string[]
+  _id: string;
+  name: string;
+  description: string;
+  s3id: string;
+  coverImageS3id?: string;
+  tags?: string[];
 }
 
 interface Props {
-  folders: Folder[]
-  allTags: string[]
-  imageUrls?: Record<string, string | null>
+  folders: Folder[];
+  allTags: string[];
+  imageUrls?: Record<string, string | null>;
 }
 
 const FolderUI: React.FC<Props> = ({ folders, allTags, imageUrls }) => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   const handleClick = (id: string) => {
-    navigate("/volunteer/workshop-information", { state: { workshopId: id } })
-  }
+    navigate("/volunteer/workshop-information", { state: { workshopId: id } });
+  };
+
+  const [folderImageUrls, setFolderImageUrls] = useState<
+    Record<string, string | null>
+  >({});
+
+  useEffect(() => {
+    const fetchImageUrls = async () => {
+      const newUrls: Record<string, string | null> = {};
+
+      await Promise.all(
+        folders.map(async (folder) => {
+          if (folder.coverImageS3id) {
+            try {
+              const res = await api.get(
+                `/api/resource/getURL/${folder.coverImageS3id}`,
+              );
+              newUrls[folder.coverImageS3id] = res.data?.signedUrl || null;
+            } catch (error) {
+              console.error(
+                `Failed to fetch URL for ${folder.coverImageS3id}:`,
+                error,
+              );
+              newUrls[folder.coverImageS3id] = null;
+            }
+          }
+        }),
+      );
+
+      setFolderImageUrls(newUrls);
+    };
+
+    if (folders.length > 0) {
+      fetchImageUrls();
+    } else {
+      setFolderImageUrls({});
+    }
+  }, [folders]);
 
   return (
     <Formik initialValues={{ tags: [], search: "" }} onSubmit={() => {}}>
@@ -32,16 +70,16 @@ const FolderUI: React.FC<Props> = ({ folders, allTags, imageUrls }) => {
         const filtered = folders.filter((folder) => {
           const matchesTags =
             values.tags.length === 0 ||
-            values.tags.some((tag) => folder.tags?.includes(tag))
+            values.tags.some((tag) => folder.tags?.includes(tag));
 
           const matchesSearch =
             folder.name.toLowerCase().includes(values.search.toLowerCase()) ||
             folder.description
               .toLowerCase()
-              .includes(values.search.toLowerCase())
+              .includes(values.search.toLowerCase());
 
-          return matchesTags && matchesSearch
-        })
+          return matchesTags && matchesSearch;
+        });
 
         return (
           <Form>
@@ -52,7 +90,7 @@ const FolderUI: React.FC<Props> = ({ folders, allTags, imageUrls }) => {
                 options={allTags}
                 selected={values.tags}
                 onChange={(tags: string[]) => {
-                  setFieldValue("tags", tags)
+                  setFieldValue("tags", tags);
                 }}
               />
               <div className="Form-group">
@@ -77,7 +115,7 @@ const FolderUI: React.FC<Props> = ({ folders, allTags, imageUrls }) => {
                     onClick={() =>
                       setFieldValue(
                         "tags",
-                        values.tags.filter((t) => t !== tag)
+                        values.tags.filter((t) => t !== tag),
                       )
                     }
                   >
@@ -100,7 +138,7 @@ const FolderUI: React.FC<Props> = ({ folders, allTags, imageUrls }) => {
                       description={folder.description}
                       imageUrl={
                         folder.coverImageS3id
-                          ? (imageUrls?.[folder.coverImageS3id] ?? null)
+                          ? (folderImageUrls?.[folder.coverImageS3id] ?? null)
                           : null
                       }
                       tags={folder.tags}
@@ -111,10 +149,10 @@ const FolderUI: React.FC<Props> = ({ folders, allTags, imageUrls }) => {
               )}
             </div>
           </Form>
-        )
+        );
       }}
     </Formik>
-  )
-}
+  );
+};
 
-export default FolderUI
+export default FolderUI;
