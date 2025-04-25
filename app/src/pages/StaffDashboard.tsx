@@ -120,16 +120,41 @@ const StaffDashboard = () => {
   // call endpoint to get all workshops
   useEffect(() => {
     const fetchWorkshops = async () => {
+      if (!user) return;
+
+      let workshopsData: CourseInformationElements[] = [];
+
       try {
-        const response = await api.get(`/api/workshop/get-workshops`);
-        setWorkshops(response.data);
-        fetchImageUrls(response.data);
+        if (user.role === "staff") {
+          // Staff/Board: get all workshops
+          const response = await api.get(`/api/workshop/get-workshops`);
+          workshopsData = response.data || [];
+        } else {
+          // Mentor/Mentee: get workshops by role and user
+          const [roleResponse, userResponse] = await Promise.all([
+            api.get(`/api/workshop/all?role=${user.role}`),
+            api.get(`/api/workshop/user/${user._id}`),
+          ]);
+
+          const roleWorkshops = roleResponse.data || [];
+          const userWorkshops = userResponse.data || [];
+
+          // Merge without duplicates
+          const workshopMap = new Map();
+          roleWorkshops.forEach((w: any) => workshopMap.set(w._id, w));
+          userWorkshops.forEach((w: any) => workshopMap.set(w._id, w));
+          workshopsData = Array.from(workshopMap.values());
+        }
+
+        setWorkshops(workshopsData);
+        fetchImageUrls(workshopsData);
       } catch (err) {
-        console.log("Unable to fetch folders.");
+        console.error("Error fetching workshops:", err);
       }
     };
+
     fetchWorkshops();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const fetchMentors = async () => {
