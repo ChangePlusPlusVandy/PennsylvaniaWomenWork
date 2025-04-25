@@ -1,92 +1,92 @@
-import React, { useState, useEffect } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
-import Navbar from "../components/Navbar"
-import Icon from "../components/Icon"
-import Modal from "../components/Modal"
-import { Formik, Form, Field } from "formik"
-import * as yup from "yup"
-import { api } from "../api"
-import { useUser } from "../contexts/UserContext"
-import { toast } from "react-hot-toast"
-import { set } from "react-hook-form"
-import { useProfileImage } from "../utils/custom-hooks"
-import ConfirmActionModal from "../components/ConfirmActionModal"
-import { Spinner } from "react-bootstrap"
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import Icon from "../components/Icon";
+import Modal from "../components/Modal";
+import { Formik, Form, Field } from "formik";
+import * as yup from "yup";
+import { api } from "../api";
+import { useUser } from "../contexts/UserContext";
+import { toast } from "react-hot-toast";
+import { set } from "react-hook-form";
+import { useProfileImage } from "../utils/custom-hooks";
+import ConfirmActionModal from "../components/ConfirmActionModal";
+import { Spinner } from "react-bootstrap";
 import Event, {
   EventData,
   parseEvents,
   groupEventsByMonth,
   formatEventSubheader,
-} from "../components/Event"
+} from "../components/Event";
 
 interface Workshop {
-  _id: string
-  name: string
-  description: string
-  mentor: string
-  mentees: string[]
+  _id: string;
+  name: string;
+  description: string;
+  mentor: string;
+  mentees: string[];
 }
 
 interface MenteeInfo {
-  _id: string
-  first_name: string
-  last_name: string
-  email: string
-  role: "mentee" | "mentor" | "staff" | "board" // Explicitly define possible roles
-  mentor?: string
-  workshops: string[] // Array of workshop names
-  profile_picture_id: string | null
+  _id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  role: "mentee" | "mentor" | "staff" | "board"; // Explicitly define possible roles
+  mentor?: string;
+  workshops: string[]; // Array of workshop names
+  profile_picture_id: string | null;
 }
 
 interface MentorInfo {
-  _id: string
-  first_name: string
-  last_name: string
-  email: string
-  profile_picture_id: string | null
+  _id: string;
+  first_name: string;
+  last_name: string;
+  email: string;
+  profile_picture_id: string | null;
 }
 
 const MenteeInformation = () => {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const userId = location.state?._id
-  const [currUser, setCurrUser] = useState<MenteeInfo | null>(null)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const [isModal, setIsModal] = useState(false)
-  const { user } = useUser()
-  const [availableWorkshops, setAvailableWorkshops] = useState([])
-  const [assignedWorkshops, setAssignedWorkshops] = useState<Workshop[]>([])
-  const [mentors, setMentors] = useState<MentorInfo[]>([])
-  const [mentorInfo, setMentorInfo] = useState<MentorInfo | null>(null)
-  const [isAssignMentorModal, setIsAssignMentorModal] = useState(false)
-  const [deleteModal, setDeleteModal] = useState(false)
-  const profileImage = useProfileImage(currUser?.profile_picture_id)
-  const [mentees, setMentees] = useState<MenteeInfo[]>([])
-  const [events, setEvents] = useState<any[]>([])
-  const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null)
+  const navigate = useNavigate();
+  const location = useLocation();
+  const userId = location.state?._id;
+  const [currUser, setCurrUser] = useState<MenteeInfo | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isModal, setIsModal] = useState(false);
+  const { user } = useUser();
+  const [availableWorkshops, setAvailableWorkshops] = useState([]);
+  const [assignedWorkshops, setAssignedWorkshops] = useState<Workshop[]>([]);
+  const [mentors, setMentors] = useState<MentorInfo[]>([]);
+  const [mentorInfo, setMentorInfo] = useState<MentorInfo | null>(null);
+  const [isAssignMentorModal, setIsAssignMentorModal] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false);
+  const profileImage = useProfileImage(currUser?.profile_picture_id);
+  const [mentees, setMentees] = useState<MenteeInfo[]>([]);
+  const [events, setEvents] = useState<any[]>([]);
+  const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
 
   const roleMap: Record<string, string> = {
     board: "Board Member",
     mentee: "Participant",
     mentor: "Volunteer",
     staff: "Staff Member",
-  }
+  };
 
-  const roleType = currUser?.role ? roleMap[currUser.role] : "User"
+  const roleType = currUser?.role ? roleMap[currUser.role] : "User";
 
   useEffect(() => {
     const fetch = async () => {
       try {
-        const { data } = await api.get(`/api/user/${userId}`)
-        setCurrUser(data)
+        const { data } = await api.get(`/api/user/${userId}`);
+        setCurrUser(data);
       } catch (err) {
-        console.error("Failed to fetch user:", err)
+        console.error("Failed to fetch user:", err);
       }
-    }
+    };
 
-    if (userId) fetch()
-  }, [userId])
+    if (userId) fetch();
+  }, [userId]);
 
   useEffect(() => {
     const fetchEvents = async () => {
@@ -94,240 +94,242 @@ const MenteeInformation = () => {
         const response = await api.post("/api/event/meetings-between-users", {
           user1Id: user?._id,
           user2Id: userId,
-        })
-        setEvents(response.data)
+        });
+        setEvents(response.data);
       } catch (err) {
-        console.error("Failed to fetch events:", err)
+        console.error("Failed to fetch events:", err);
       }
-    }
+    };
 
     if (user?._id && userId) {
-      fetchEvents()
+      fetchEvents();
     }
-  }, [user?._id, userId])
+  }, [user?._id, userId]);
 
   useEffect(() => {
     const fetchMenteeData = async () => {
       try {
-        const menteeResponse = await api.get(`/api/mentee/get-mentee/${userId}`)
-        setCurrUser(menteeResponse.data)
+        const menteeResponse = await api.get(
+          `/api/mentee/get-mentee/${userId}`,
+        );
+        setCurrUser(menteeResponse.data);
 
         if (menteeResponse.data.mentor_id) {
           const mentorRes = await api.get(
-            `/api/mentor/mentor-for-mentee/${menteeResponse.data._id}`
-          )
-          setMentorInfo(mentorRes.data)
+            `/api/mentor/mentor-for-mentee/${menteeResponse.data._id}`,
+          );
+          setMentorInfo(mentorRes.data);
         }
 
         const workshopsResponse = await api.get(
-          `/api/mentee/${userId}/workshops`
-        )
-        setAssignedWorkshops(workshopsResponse.data)
+          `/api/mentee/${userId}/workshops`,
+        );
+        setAssignedWorkshops(workshopsResponse.data);
       } catch (err) {
-        setError("Failed to load mentee details.")
-        console.error("Error fetching mentee data:", err)
+        setError("Failed to load mentee details.");
+        console.error("Error fetching mentee data:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    if (currUser?.role === "mentee" && userId) fetchMenteeData()
-  }, [userId, currUser?.role])
+    if (currUser?.role === "mentee" && userId) fetchMenteeData();
+  }, [userId, currUser?.role]);
 
   useEffect(() => {
     const fetchMenteesForMentor = async () => {
       try {
-        const response = await api.get(`/api/mentor/${userId}/mentees`)
-        setMentees(response.data.mentees) // 👈 extract the actual array
+        const response = await api.get(`/api/mentor/${userId}/mentees`);
+        setMentees(response.data.mentees); // 👈 extract the actual array
       } catch (err) {
-        console.error("Failed to fetch mentees for mentor:", err)
+        console.error("Failed to fetch mentees for mentor:", err);
       }
-    }
+    };
 
     if (currUser?.role === "mentor" && userId) {
-      fetchMenteesForMentor()
+      fetchMenteesForMentor();
     }
-  }, [currUser?.role, userId])
+  }, [currUser?.role, userId]);
 
   useEffect(() => {
     const fetchMentorData = async () => {
       try {
-        const mentorId = currUser?.mentor
-        if (!mentorId) return
+        const mentorId = currUser?.mentor;
+        if (!mentorId) return;
 
-        const response = await api.get(`/api/mentor/get-mentor/${mentorId}`)
-        setMentorInfo(response.data)
+        const response = await api.get(`/api/mentor/get-mentor/${mentorId}`);
+        setMentorInfo(response.data);
       } catch (err) {
-        setError("Failed to load mentor details.")
-        console.error("Error fetching mentor data:", err)
+        setError("Failed to load mentor details.");
+        console.error("Error fetching mentor data:", err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
 
-    if (currUser?.role === "mentee") fetchMentorData()
-  }, [currUser?.role, currUser?.mentor])
+    if (currUser?.role === "mentee") fetchMentorData();
+  }, [currUser?.role, currUser?.mentor]);
 
   useEffect(() => {
     const fetchWorkshops = async () => {
       try {
-        const response = await api.get("/api/workshop/get-workshops")
-        setAvailableWorkshops(response.data)
+        const response = await api.get("/api/workshop/get-workshops");
+        setAvailableWorkshops(response.data);
       } catch (err) {
-        console.error("Error fetching workshops:", err)
+        console.error("Error fetching workshops:", err);
       }
-    }
-    if (currUser?.role === "mentee") fetchWorkshops()
-  }, [currUser?.role])
+    };
+    if (currUser?.role === "mentee") fetchWorkshops();
+  }, [currUser?.role]);
 
   // i only want to do this if this is a staff member
   useEffect(() => {
     // pull in all mentors
     const fetchMentors = async () => {
       try {
-        const response = await api.get("/api/mentor/all-mentors")
-        setMentors(response.data)
-        return response.data
+        const response = await api.get("/api/mentor/all-mentors");
+        setMentors(response.data);
+        return response.data;
       } catch (err) {
-        console.error("Error fetching mentors:", err)
+        console.error("Error fetching mentors:", err);
       }
-    }
-    fetchMentors()
-  }, [userId])
+    };
+    fetchMentors();
+  }, [userId]);
 
   const initialValues = {
     courseName: "",
-  }
+  };
 
   const validationSchema = yup.object({
     courseName: yup.string().required("Course selection is required"),
-  })
+  });
 
   const handleSubmit = async (
     values: typeof initialValues,
-    { setSubmitting }: any
+    { setSubmitting }: any,
   ) => {
     try {
       if (!userId) {
-        console.error("Mentee ID is missing.")
-        setSubmitting(false)
-        return
+        console.error("Mentee ID is missing.");
+        setSubmitting(false);
+        return;
       }
 
       console.log(
         "Assigning workshop:",
         values.courseName,
         "to mentee:",
-        userId
-      )
+        userId,
+      );
 
       const payload = {
         workshopId: values.courseName,
-      }
+      };
 
-      console.log("Sending payload:", payload)
+      console.log("Sending payload:", payload);
 
       const response = await api.put(
         `/api/mentee/${userId}/add-workshop`,
-        payload
-      )
+        payload,
+      );
 
-      console.log("Assignment response:", response)
+      console.log("Assignment response:", response);
 
       if (response.status === 200) {
-        toast.success("Workshop assigned successfully!")
-        const updatedMentee = await api.get(`/api/mentee/get-mentee/${userId}`)
-        setCurrUser(updatedMentee.data)
-        setIsModal(false)
+        toast.success("Workshop assigned successfully!");
+        const updatedMentee = await api.get(`/api/mentee/get-mentee/${userId}`);
+        setCurrUser(updatedMentee.data);
+        setIsModal(false);
       } else {
-        throw new Error("Failed to assign workshop")
+        throw new Error("Failed to assign workshop");
       }
     } catch (error) {
-      console.error("Error assigning workshop:", error)
-      toast.error("Failed to assign workshop")
+      console.error("Error assigning workshop:", error);
+      toast.error("Failed to assign workshop");
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
   const mentorInitialValues = {
     mentorName: "",
-  }
+  };
 
   const mentorValidationSchema = yup.object({
     mentorName: yup.string().required("Volunteer selection is required"),
-  })
+  });
   const handleMentorSubmit = async (
     values: typeof mentorInitialValues,
-    { setSubmitting }: any
+    { setSubmitting }: any,
   ) => {
     try {
       if (!userId) {
-        toast.error("No mentee selected")
-        setSubmitting(false)
-        return
+        toast.error("No mentee selected");
+        setSubmitting(false);
+        return;
       }
 
       const response = await api.put(
         `/api/mentor/${values.mentorName}/assign-mentee`,
         {
           menteeId: userId,
-        }
-      )
+        },
+      );
 
       if (response.status === 200) {
-        toast.success("Mentor assigned successfully")
+        toast.success("Mentor assigned successfully");
         // Refresh mentee data to show new mentor
-        const menteeResponse = await api.get(`/api/user/${userId}`)
-        setCurrUser(menteeResponse.data)
+        const menteeResponse = await api.get(`/api/user/${userId}`);
+        setCurrUser(menteeResponse.data);
       }
 
-      setIsAssignMentorModal(false)
+      setIsAssignMentorModal(false);
     } catch (error) {
-      console.error("Error assigning mentor:", error)
-      toast.error("Failed to assign mentor")
+      console.error("Error assigning mentor:", error);
+      toast.error("Failed to assign mentor");
     } finally {
-      setSubmitting(false)
+      setSubmitting(false);
     }
-  }
+  };
 
   const handleEventClick = (event: EventData) => {
-    setSelectedEvent(event)
-  }
+    setSelectedEvent(event);
+  };
 
   // Compute initials for the mentee's avatar
   const getInitials = () => {
-    if (!currUser) return ""
+    if (!currUser) return "";
     return (
       currUser.first_name.charAt(0).toUpperCase() +
       currUser.last_name.charAt(0).toUpperCase()
-    )
-  }
+    );
+  };
 
   // event logic
-  const eventsByMonth = groupEventsByMonth(events)
+  const eventsByMonth = groupEventsByMonth(events);
   const monthsWithEvents = Object.entries(eventsByMonth).filter(
-    ([_, events]) => events.length > 0
-  )
+    ([_, events]) => events.length > 0,
+  );
 
   if (loading) {
-    ;<Spinner />
+    <Spinner />;
   }
 
   if (error) {
-    return <div>{error}</div>
+    return <div>{error}</div>;
   }
 
   const handleDeleteMentee = async (userId: string) => {
     try {
-      await api.delete(`/api/mentee/delete-mentee/${userId}`)
-      navigate("/home")
+      await api.delete(`/api/mentee/delete-mentee/${userId}`);
+      navigate("/home");
     } catch (err) {
-      toast.error("Failed to delete mentee.")
+      toast.error("Failed to delete mentee.");
     } finally {
-      toast.success("Mentee deleted successfully.")
-      setDeleteModal(false)
+      toast.success("Mentee deleted successfully.");
+      setDeleteModal(false);
     }
-  }
+  };
 
   return (
     <>
@@ -530,7 +532,7 @@ const MenteeInformation = () => {
                   <button
                     className="Button Button-color--red-1000 Button--hollow Width--100"
                     onClick={() => {
-                      setDeleteModal(true)
+                      setDeleteModal(true);
                     }}
                   >
                     Delete {roleType}
@@ -660,7 +662,7 @@ const MenteeInformation = () => {
         />
       )}
     </>
-  )
-}
+  );
+};
 
-export default MenteeInformation
+export default MenteeInformation;

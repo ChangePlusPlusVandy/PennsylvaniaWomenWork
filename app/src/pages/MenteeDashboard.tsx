@@ -37,65 +37,42 @@ const MenteeDashboard = () => {
 
   useEffect(() => {
     if (!userId) return;
-
     const fetchData = async () => {
       try {
-        // First, get events
-        const eventsResponse = await api.get(`/api/event/${userId}`);
+        const [eventsResponse, userWorkshopsResponse, menteeWorkshopsResponse] =
+          await Promise.all([
+            api.get(`/api/event/${userId}`), // Events
+            api.get(`/api/workshop/user/${userId}`), // User-specific workshops (users field)
+            api.get(`/api/mentee/${userId}/workshops`), // Mentee-specific workshops
+          ]);
+
+        // Events
         const parsed = parseEvents(eventsResponse.data);
         setEvents(parsed);
 
-        // Get role-based workshops with better error handling
-        let roleWorkshops = [];
-        try {
-          const roleWorkshopsResponse = await api.get(
-            `/api/workshop/all?role=${user?.role || "mentee"}`,
-          );
-          roleWorkshops = roleWorkshopsResponse.data || [];
-          console.log("Role-based workshops:", roleWorkshops);
-        } catch (error) {
-          console.error("Error fetching role-based workshops:", error);
-          // Continue with empty array
-        }
-
-        // Get user-specific assigned workshops
-        let userWorkshops = [];
-        try {
-          const userWorkshopsResponse = await api.get(
-            `/api/mentee/${userId}/workshops`,
-          );
-          userWorkshops = userWorkshopsResponse.data || [];
-          console.log("User-specific workshops:", userWorkshops);
-        } catch (error) {
-          console.error("Error fetching user-specific workshops:", error);
-          // Continue with empty array
-        }
-
-        // Combine workshops, avoiding duplicates by ID
+        // Workshops
         const workshopMap = new Map();
 
-        // Add role-based workshops first
-        roleWorkshops.forEach((workshop: any) => {
+        // Add workshops assigned via the `users` field
+        (userWorkshopsResponse.data || []).forEach((workshop: any) => {
           workshopMap.set(workshop._id, workshop);
         });
 
-        // Add user-specific workshops, overwriting any duplicates
-        userWorkshops.forEach((workshop: any) => {
+        // Add mentee-specific workshops (overwrites duplicates)
+        (menteeWorkshopsResponse.data || []).forEach((workshop: any) => {
           workshopMap.set(workshop._id, workshop);
         });
 
-        // Convert map back to array
         const allWorkshops = Array.from(workshopMap.values());
         console.log("Combined workshops:", allWorkshops);
-
         setFolders(allWorkshops);
+
         setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
         setLoading(false);
       }
     };
-
     fetchData();
   }, [userId, user?.role]);
 
