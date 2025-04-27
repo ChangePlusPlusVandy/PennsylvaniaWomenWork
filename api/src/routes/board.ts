@@ -5,6 +5,7 @@ import {
   getBoardFiles,
   getAllTags,
   getBoardFileById,
+  getBoardFilesByUserId,
 } from "../controllers/boardFileController";
 
 const router = express.Router();
@@ -22,5 +23,7 @@ router.get("/get-files", getBoardFiles);
 router.get("/get-tags", getAllTags);
 
 router.get("/:BoardFileId", getBoardFileById);
+
+router.get("/:boardId/files", getBoardFilesByUserId);
 
 export default router;
