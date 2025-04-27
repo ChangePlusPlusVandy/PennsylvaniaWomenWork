@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { BoardFile } from "../model/BoardFile";
+import User from "../model/User";
 import AWS from "aws-sdk";
 import dotenv from "dotenv";
 
@@ -104,5 +105,35 @@ export const getBoardFileById = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error retrieving board file:", error);
     res.status(500).json({ message: "Error retrieving board file", error });
+  }
+};
+
+export const getBoardFilesByUserId = async (req: Request, res: Response) => {
+  try {
+    const { boardId } = req.params;
+
+    // First get the board member to get their workshop IDs
+    const boardMember = await User.findById(boardId);
+
+    if (!boardMember) {
+      return res.status(404).json({ message: "Board member not found" });
+    }
+
+    console.log("Found board member:", boardMember);
+    console.log("Board member workshops:", boardMember.folders);
+
+    // Get full board file details for each board file ID
+    const boardFiles = await BoardFile.find({
+      _id: { $in: boardMember.folders || [] },
+    });
+
+    console.log("Found board files:", boardFiles);
+    res.status(200).json(boardFiles);
+  } catch (error) {
+    console.error("Error retrieving board files for board member:", error);
+    res.status(500).json({
+      message: "Error retrieving board files for board member",
+      error,
+    });
   }
 };

@@ -10,6 +10,7 @@ import Event, {
 } from "../components/Event";
 import { useUser } from "../contexts/UserContext";
 import FolderUI from "../components/FolderUI";
+import { set } from "react-hook-form";
 
 interface Folder {
   _id: string;
@@ -26,50 +27,47 @@ const BoardDashboard = () => {
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
   const { user } = useUser();
   const userId = user?._id;
+  const [loading, setLoading] = useState(true);
   const [possibleTags, setPossibleTags] = useState<string[]>([]);
 
-  const formattedSubheader = selectedEvent
-    ? formatEventSubheader(selectedEvent)
-    : "";
+  const formattedSubheader = selectedEvent ? formatEventSubheader(selectedEvent) : "";
 
   const eventsByMonth = groupEventsByMonth(events);
 
   useEffect(() => {
     if (!userId) return;
 
-    const fetchEvents = async () => {
+    const fetchData = async () => {
       try {
+        // First, get events
         const response = await api.get(`/api/event/${userId}`);
         const parsed = parseEvents(response.data);
         setEvents(parsed);
+        try {
+          // Get files for the user
+          const filesResponse = await api.get(`/api/board/get-files/${userId}`);
+          setFolders(
+            filesResponse.data.map((file: any) => ({
+              _id: file._id,
+              name: file.name,
+              description: file.description,
+              coverImageS3id: file.coverImageS3id,
+              tags: file.tags || [],
+            }))
+          );
+        } catch (error) {
+          console.error("Error fetching board files:", error);
+          setLoading(false);
+        }
+        setLoading(false);
       } catch (error) {
-        console.error("Error fetching events:", error);
+        console.error("Error fetching data:", error);
+        setLoading(false);
       }
     };
 
-    fetchEvents();
-  }, [userId]);
-
-  useEffect(() => {
-    const fetchFiles = async () => {
-      try {
-        const response = await api.get(`/api/board/get-files`);
-        setFolders(
-          response.data.map((file: any) => ({
-            _id: file._id, // <-- this was missing!
-            name: file.name,
-            description: file.description,
-            coverImageS3id: file.coverImageS3id,
-            tags: file.tags || [],
-          })),
-        );
-      } catch (error) {
-        console.error("Error fetching board files:", error);
-      }
-    };
-
-    fetchFiles();
-  }, []);
+    fetchData();
+  }, [userId, user?.role]);
 
   useEffect(() => {
     const fetchTags = async () => {
@@ -123,9 +121,7 @@ const BoardDashboard = () => {
           <div className="col-lg-8">
             <div className="Block">
               <div className="Block-header">All Files</div>
-              <div className="Block-subtitle">
-                Select a file to access materials.
-              </div>
+              <div className="Block-subtitle">Select a file to access materials.</div>
               <FolderUI
                 folders={folders}
                 allTags={possibleTags}
