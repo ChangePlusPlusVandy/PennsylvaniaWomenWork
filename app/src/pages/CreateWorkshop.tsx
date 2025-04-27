@@ -18,7 +18,7 @@ interface FormValues {
   name: string;
   description: string;
   imageUpload: File | null;
-  role: string;
+  role: string[];
   tags: string[];
 }
 
@@ -35,7 +35,7 @@ const initialValues: FormValues = {
   name: "",
   description: "",
   imageUpload: null,
-  role: "",
+  role: [],
   tags: [],
 };
 
@@ -50,7 +50,9 @@ const roles = [
 const validationSchema = Yup.object().shape({
   name: Yup.string().required("Name is required"),
   description: Yup.string().required("Description is required"),
-  role: Yup.string().required("Please select an audience"),
+  role: Yup.array()
+    .of(Yup.string())
+    .min(1, "Please select at least one audience"),
   imageUpload: Yup.mixed()
     .nullable()
     .test("fileSize", "File size is too large", (value) => {
@@ -152,7 +154,7 @@ const CreateWorkshop = () => {
       }
 
       // Create either board file or workshop based on role
-      if (values.role === "board") {
+      if (values.role.includes("board")) {
         console.log("Board file payload:", {
           name: values.name,
           description: values.description,
@@ -180,7 +182,12 @@ const CreateWorkshop = () => {
           console.error("Error creating board file:", error);
           throw error;
         }
-      } else {
+      }
+      if (
+        values.role.includes("mentor") ||
+        values.role.includes("mentee") ||
+        values.role.includes("staff")
+      ) {
         const payload = {
           name: values.name,
           description: values.description,
@@ -413,12 +420,24 @@ const CreateWorkshop = () => {
                       {roles.map((role) => (
                         <div key={role.id} className="Role-tag-item">
                           <input
-                            type="radio"
+                            type="checkbox"
                             id={`role-${role.id}`}
                             name="role"
                             className="Role-tag-input"
-                            checked={values.role === role.id}
-                            onChange={() => setFieldValue("role", role.id)}
+                            checked={values.role.includes(role.id)}
+                            onChange={() => {
+                              if (values.role.includes(role.id)) {
+                                setFieldValue(
+                                  "role",
+                                  values.role.filter((r) => r !== role.id),
+                                );
+                              } else {
+                                setFieldValue("role", [
+                                  ...values.role,
+                                  role.id,
+                                ]);
+                              }
+                            }}
                           />
                           <label
                             htmlFor={`role-${role.id}`}

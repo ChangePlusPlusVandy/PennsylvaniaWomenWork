@@ -120,16 +120,29 @@ const StaffDashboard = () => {
   // call endpoint to get all workshops
   useEffect(() => {
     const fetchWorkshops = async () => {
+      if (!user) return;
+
+      let workshopsData: CourseInformationElements[] = [];
+
       try {
-        const response = await api.get(`/api/workshop/get-workshops`);
-        setWorkshops(response.data);
-        fetchImageUrls(response.data);
+        if (user.role === "staff") {
+          // Staff/Board: get all workshops
+          const response = await api.get(`/api/workshop/get-workshops`);
+          workshopsData = response.data || [];
+        } else {
+          // Mentor/Mentee: get workshops by role and user
+          const userResponse = await api.get(`/api/workshop/user/${user._id}`);
+          workshopsData = userResponse.data || [];
+        }
+        setWorkshops(workshopsData);
+        fetchImageUrls(workshopsData);
       } catch (err) {
-        console.log("Unable to fetch folders.");
+        console.error("Error fetching workshops:", err);
       }
     };
+
     fetchWorkshops();
-  }, []);
+  }, [user]);
 
   useEffect(() => {
     const fetchMentors = async () => {

@@ -3,6 +3,7 @@ import { Workshop } from "../model/Workshop";
 import AWS from "aws-sdk";
 import dotenv from "dotenv";
 import { deleteResourcesForWorkshop } from "./resourceController";
+import User from "../model/User";
 
 dotenv.config();
 
@@ -42,27 +43,34 @@ export const generatePresignedUrl = async (req: Request, res: Response) => {
 };
 
 export const createWorkshop = async (req: Request, res: Response) => {
-  const { name, description, s3id, coverImageS3id, tags, role } = req.body;
+  const { name, description, s3id, coverImageS3id, tags, role = [] } = req.body;
 
-  if (!name || !description) {
-    return res.status(400).json({ message: "Missing required fields" });
+  if (!name || !description || !Array.isArray(role) || role.length === 0) {
+    return res
+      .status(400)
+      .json({ message: "Missing required fields or roles" });
   }
 
   try {
+    const usersByRole = await User.find({ role: { $in: role } }, "_id");
+    const userIds = usersByRole.map((user) => user._id);
+
     const newWorkshop = new Workshop({
       name,
       description,
       s3id,
       coverImageS3id,
       tags: tags || [],
-      role,
+      role, // Store selected roles
+      users: userIds, // Assign matched user IDs
     });
+
     const savedWorkshop = await newWorkshop.save();
 
-    // Success:
     res.status(201).json({
       message: "Workshop created successfully",
       workshop: savedWorkshop,
+      audienceCount: userIds.length,
     });
   } catch (error) {
     console.error("Error saving workshop:", error);
@@ -91,17 +99,12 @@ export const getWorkshopsByUserId = async (req: Request, res: Response) => {
     const { userId } = req.params;
 
     const workshops = await Workshop.find({
-      $or: [{ mentor: userId }, { mentee: userId }],
+      users: userId,
     });
-
-    if (workshops.length === 0) {
-      return res
-        .status(404)
-        .json({ message: "No workshops found for this user" });
-    }
 
     res.status(200).json(workshops);
   } catch (error) {
+    console.error("Error retrieving workshops:", error);
     res.status(500).json({ message: "Error retrieving workshops", error });
   }
 };

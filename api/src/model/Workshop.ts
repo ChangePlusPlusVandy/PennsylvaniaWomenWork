@@ -7,8 +7,8 @@ interface IWorkshop extends Document {
   coverImageS3id?: string;
   createdAt: Date;
   tags: string[];
-  role: string;
-
+  role: string[];
+  users: Schema.Types.ObjectId[];
   // updateContent(newContent: string): Promise<void>;
 }
 
@@ -21,7 +21,8 @@ const WorkshopSchema: Schema<IWorkshop> = new Schema(
     coverImageS3id: { type: String },
     createdAt: { type: Date, default: Date.now },
     tags: [{ type: String }],
-    role: { type: String },
+    role: [{ type: String }],
+    users: [{ type: Schema.Types.ObjectId, ref: "User" }],
   },
   { timestamps: true },
 );
