@@ -24,6 +24,6 @@ router.get("/get-tags", getAllTags);
 
 router.get("/:BoardFileId", getBoardFileById);
 
-router.get("/:boardId/files", getBoardFilesByUserId);
+router.get("/get-files/:boardId", getBoardFilesByUserId);
 
 export default router;
