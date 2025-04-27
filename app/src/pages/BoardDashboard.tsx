@@ -18,6 +18,7 @@ interface Folder {
   s3id?: string;
   coverImageS3id?: string;
   tags?: string[];
+  role: string[];
 }
 
 const BoardDashboard = () => {
@@ -53,7 +54,7 @@ const BoardDashboard = () => {
   useEffect(() => {
     const fetchFiles = async () => {
       try {
-        const response = await api.get(`/api/board/get-files`);
+        const response = await api.get(`/api/board/get-files?role=board`);
         setFolders(
           response.data.map((file: any) => ({
             _id: file._id, // <-- this was missing!
@@ -61,6 +62,7 @@ const BoardDashboard = () => {
             description: file.description,
             coverImageS3id: file.coverImageS3id,
             tags: file.tags || [],
+            role: file.role || [],
           })),
         );
       } catch (error) {

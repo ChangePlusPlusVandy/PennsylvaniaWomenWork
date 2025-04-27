@@ -40,7 +40,7 @@ export const generatePresignedUrl = async (req: Request, res: Response) => {
 };
 
 export const createBoardFile = async (req: Request, res: Response) => {
-  const { name, description, coverImageS3id, tags } = req.body;
+  const { name, description, coverImageS3id, tags, role } = req.body;
 
   if (!name || !description) {
     return res.status(400).json({ message: "Missing required fields" });
@@ -52,6 +52,7 @@ export const createBoardFile = async (req: Request, res: Response) => {
       description,
       coverImageS3id,
       tags: tags || [],
+      role: role || [],
     });
 
     const savedBoardFile = await newBoardFile.save();
@@ -68,7 +69,9 @@ export const createBoardFile = async (req: Request, res: Response) => {
 
 export const getBoardFiles = async (req: Request, res: Response) => {
   try {
-    const boardFiles = await BoardFile.find();
+    const { role } = req.query;
+    const query = role ? { role: { $in: [role] } } : {};
+    const boardFiles = await BoardFile.find(query);
     res.status(200).json(boardFiles);
   } catch (error) {
     console.error("Error retrieving board files:", error);

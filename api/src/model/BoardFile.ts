@@ -5,6 +5,7 @@ interface IBoardFile extends Document {
   description: string;
   coverImageS3id?: string;
   tags: string[];
+  role: string[];
 }
 
 const BoardFileSchema: Schema<IBoardFile> = new Schema({
@@ -12,6 +13,7 @@ const BoardFileSchema: Schema<IBoardFile> = new Schema({
   description: { type: String, required: true },
   coverImageS3id: { type: String, required: true },
   tags: [{ type: String }],
+  role: [{ type: String }],
 });
 
 const BoardFile = mongoose.model<IBoardFile>("boardFile", BoardFileSchema);

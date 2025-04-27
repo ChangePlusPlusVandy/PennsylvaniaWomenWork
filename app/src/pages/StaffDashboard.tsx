@@ -131,21 +131,9 @@ const StaffDashboard = () => {
           workshopsData = response.data || [];
         } else {
           // Mentor/Mentee: get workshops by role and user
-          const [roleResponse, userResponse] = await Promise.all([
-            api.get(`/api/workshop/all?role=${user.role}`),
-            api.get(`/api/workshop/user/${user._id}`),
-          ]);
-
-          const roleWorkshops = roleResponse.data || [];
-          const userWorkshops = userResponse.data || [];
-
-          // Merge without duplicates
-          const workshopMap = new Map();
-          roleWorkshops.forEach((w: any) => workshopMap.set(w._id, w));
-          userWorkshops.forEach((w: any) => workshopMap.set(w._id, w));
-          workshopsData = Array.from(workshopMap.values());
+          const userResponse = await api.get(`/api/workshop/user/${user._id}`);
+          workshopsData = userResponse.data || [];
         }
-
         setWorkshops(workshopsData);
         fetchImageUrls(workshopsData);
       } catch (err) {

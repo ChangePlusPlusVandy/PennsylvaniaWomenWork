@@ -182,7 +182,12 @@ const CreateWorkshop = () => {
           console.error("Error creating board file:", error);
           throw error;
         }
-      } else {
+      }
+      if (
+        values.role.includes("mentor") ||
+        values.role.includes("mentee") ||
+        values.role.includes("staff")
+      ) {
         const payload = {
           name: values.name,
           description: values.description,
