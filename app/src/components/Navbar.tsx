@@ -22,11 +22,11 @@ const Navbar = (): ReactElement => {
       label: "Create Folder",
       roles: [roles.staff, roles.board],
     },
-    {
-      path: "/create-meeting",
-      label: "Create Meeting",
-      roles: [roles.staff, roles.volunteer],
-    },
+    // {
+    //   path: "/create-meeting",
+    //   label: "Create Meeting",
+    //   roles: [roles.staff, roles.volunteer],
+    // },
     { path: "/create-event", label: "Create Event", roles: [roles.staff] },
     {
       path: "/invite",

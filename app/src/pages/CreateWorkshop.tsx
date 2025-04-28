@@ -304,7 +304,7 @@ const CreateWorkshop = () => {
       <div className="FormWidget">
         <div className="FormWidget-body Block">
           <div className="Block-header">Create Folder</div>
-          <div className="Block-subtitle">Add a new workshop</div>
+          <div className="Block-subtitle">Add a new folder</div>
           <div className="Block-body">
             <Formik
               initialValues={initialValues}
@@ -314,7 +314,7 @@ const CreateWorkshop = () => {
               {({ errors, touched, isSubmitting, setFieldValue, values }) => (
                 <Form>
                   <div className="Form-group">
-                    <label htmlFor="name">Workshop Name:</label>
+                    <label htmlFor="name">Folder Name:</label>
                     <Field
                       type="text"
                       name="name"
@@ -339,7 +339,7 @@ const CreateWorkshop = () => {
                   </div>
                   <div className="Form-group">
                     <label htmlFor="imageUpload">
-                      Workshop cover Image (optional):
+                      Folder cover Image (optional):
                     </label>
                     <input
                       type="file"
