@@ -5,7 +5,7 @@ import mentor from "./mentor"; // mentor routes
 import mentee from "./mentee"; // mentee routes
 import event from "./event"; // event routes
 import resource from "./resource"; // resource routes
-import boardFile from "./boardFile"; // boardFile routes
+import board from "./board"; // board routes
 
 const router = express.Router();
 
@@ -16,9 +16,9 @@ router.use("/mentor", mentor);
 router.use("/mentee", mentee);
 router.use("/event", event);
 router.use("/resource", resource);
-router.use("/boardFile", boardFile);
+router.use("/board", board);
 
 export default router;
 
 // export { workshops }
-export { user, workshop, resource, boardFile };
+export { user, workshop, resource, board };

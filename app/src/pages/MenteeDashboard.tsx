@@ -3,20 +3,30 @@ import Navbar from "../components/Navbar";
 import Modal from "../components/Modal";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api";
-import Event, { EventData } from "../components/Event";
 import { useUser } from "../contexts/UserContext";
 import { useAuth0 } from "@auth0/auth0-react";
+import FolderCard from "../components/FolderCard";
+import Event, {
+  EventData,
+  parseEvents,
+  groupEventsByMonth,
+  formatEventSubheader,
+} from "../components/Event";
+import FolderUI from "../components/FolderUI";
 
-interface Workshop {
+interface Folder {
   _id: string;
   name: string;
   description: string;
+  s3id: string;
+  coverImageS3id?: string;
+  tags?: string[];
 }
 
 const MenteeDashboard = () => {
   const navigate = useNavigate();
   const [events, setEvents] = useState<EventData[]>([]);
-  const [workshops, setWorkshops] = useState<Workshop[]>([]);
+  const [folders, setFolders] = useState<Folder[]>([]);
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null);
   const { user } = useUser();
   const userId = user?._id;
@@ -25,89 +35,81 @@ const MenteeDashboard = () => {
   const end = selectedEvent ? new Date(selectedEvent.endTime) : null;
   const eventDate = selectedEvent ? new Date(selectedEvent.date) : null;
 
-  const formattedSubheader =
-    eventDate && start && end
-      ? `${eventDate.toLocaleString("default", {
-          month: "long",
-        })} ${eventDate.getDate()}, ${eventDate.getFullYear()} ${start.toLocaleTimeString(
-          "en-US",
-          {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-          },
-        )} - ${end.toLocaleTimeString("en-US", {
-          hour: "2-digit",
-          minute: "2-digit",
-          hour12: true,
-        })}`
-      : "";
-
   useEffect(() => {
     if (!userId) return;
 
     const fetchData = async () => {
       try {
-        const [eventsResponse, workshopsResponse] = await Promise.all([
-          api.get(`/api/event/${userId}`),
-          api.get(`/api/mentee/${userId}/workshops`),
-        ]);
+        // First, get events
+        const eventsResponse = await api.get(`/api/event/${userId}`);
+        const parsed = parseEvents(eventsResponse.data);
+        setEvents(parsed);
 
-        setEvents(
-          eventsResponse.data.map((event: any) => ({
-            name: event.name,
-            startTime: event.startTime,
-            endTime: event.endTime,
-            description: event.description,
-            date: event.date,
-            userIds: event.users || [],
-            calendarLink: event.calendarLink || "",
-          })),
-        );
+        // Get role-based workshops with better error handling
+        let roleWorkshops = [];
+        try {
+          const roleWorkshopsResponse = await api.get(
+            `/api/workshop/all?role=${user?.role || "mentee"}`,
+          );
+          roleWorkshops = roleWorkshopsResponse.data || [];
+          console.log("Role-based workshops:", roleWorkshops);
+        } catch (error) {
+          console.error("Error fetching role-based workshops:", error);
+          // Continue with empty array
+        }
 
-        setWorkshops(workshopsResponse.data);
+        // Get user-specific assigned workshops
+        let userWorkshops = [];
+        try {
+          const userWorkshopsResponse = await api.get(
+            `/api/mentee/${userId}/workshops`,
+          );
+          userWorkshops = userWorkshopsResponse.data || [];
+          console.log("User-specific workshops:", userWorkshops);
+        } catch (error) {
+          console.error("Error fetching user-specific workshops:", error);
+          // Continue with empty array
+        }
+
+        // Combine workshops, avoiding duplicates by ID
+        const workshopMap = new Map();
+
+        // Add role-based workshops first
+        roleWorkshops.forEach((workshop: any) => {
+          workshopMap.set(workshop._id, workshop);
+        });
+
+        // Add user-specific workshops, overwriting any duplicates
+        userWorkshops.forEach((workshop: any) => {
+          workshopMap.set(workshop._id, workshop);
+        });
+
+        // Convert map back to array
+        const allWorkshops = Array.from(workshopMap.values());
+        console.log("Combined workshops:", allWorkshops);
+
+        setFolders(allWorkshops);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching data:", error);
-      } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [userId]);
+  }, [userId, user?.role]);
 
-  const handleWorkshopClick = (workshopId: string) => {
-    navigate(`/volunteer/workshop-information`, {
-      state: { workshopId },
-    });
-  };
+  const eventsByMonth = groupEventsByMonth(events);
+  const formattedSubheader = selectedEvent
+    ? formatEventSubheader(selectedEvent)
+    : "";
+
+  const monthsWithEvents = Object.entries(eventsByMonth).filter(
+    ([_, events]) => events.length > 0,
+  );
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-
-  const eventsByMonth: { [key: string]: EventData[] } = events
-    .filter((event) => new Date(event.date) >= today)
-    .sort(
-      (a, b) =>
-        new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
-    ) // Sort events chronologically
-    .reduce(
-      (acc, event) => {
-        const eventDate = new Date(event.startTime);
-        const month = eventDate.toLocaleString("default", { month: "long" });
-
-        if (!acc[month]) {
-          acc[month] = [];
-        }
-        acc[month].push({
-          ...event,
-          formattedDate: eventDate.toDateString(),
-        });
-
-        return acc;
-      },
-      {} as { [key: string]: EventData[] },
-    );
 
   const handleEventClick = (event: EventData) => {
     setSelectedEvent(event);
@@ -139,7 +141,7 @@ const MenteeDashboard = () => {
                     textDecoration: "none",
                   }}
                 >
-                  Add to Calendar
+                  Go to Link
                 </a>
               )}
             </div>
@@ -151,42 +153,32 @@ const MenteeDashboard = () => {
         <div className="row g-3">
           <div className="col-lg-8">
             <div className="Block">
-              <div className="Block-header">My Files</div>
+              <div className="Block-header">My Folders</div>
               <div className="Block-subtitle">
-                Select a course to access materials.
+                Select a folder to access materials.
               </div>
-              <div className="row gx-3 gy-3">
-                {workshops.map((item) => (
-                  <div className="col-lg-4" key={item._id}>
-                    <div
-                      className="Mentor--card"
-                      onClick={() => handleWorkshopClick(item._id)}
-                    >
-                      <div className="Mentor--card-color Background-color--teal-1000" />
-                      <div className="Padding--10">
-                        <div className="Mentor--card-name">{item.name}</div>
-                        <div className="Mentor--card-description">
-                          {item.description}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <FolderUI
+                folders={folders.length > 0 ? folders : []}
+                allTags={[]} // if you don't have tags, keep it empty for now
+              />
             </div>
           </div>
           <div className="col-lg-4">
             <div className="Block p-3">
               <div className="Block-header">Upcoming Events</div>
-              <div className="Block-subtitle">Select an event to register.</div>
-              {Object.entries(eventsByMonth).map(([month, monthEvents]) => (
-                <Event
-                  key={month}
-                  month={month}
-                  events={monthEvents}
-                  onEventClick={handleEventClick}
-                />
-              ))}
+              <div className="Block-subtitle">Select an event for details.</div>
+              {monthsWithEvents.length === 0 ? (
+                <div className="Text--center">No upcoming events</div>
+              ) : (
+                monthsWithEvents.map(([month, monthEvents]) => (
+                  <Event
+                    key={month}
+                    month={month}
+                    events={monthEvents}
+                    onEventClick={handleEventClick}
+                  />
+                ))
+              )}
 
               {/* Add Schedule Meeting button for mentees */}
               <div

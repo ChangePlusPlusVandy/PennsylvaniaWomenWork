@@ -1,65 +1,66 @@
-import React, { type ReactElement } from "react"
-import { useNavigate, useLocation } from "react-router-dom"
-import { useAuth0 } from "@auth0/auth0-react"
-import { useUser } from "../contexts/UserContext"
-import { tier1Roles, tier2Roles, tier3Roles } from "../utils/roles"
+import React, { type ReactElement } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useAuth0 } from "@auth0/auth0-react";
+import { useUser } from "../contexts/UserContext";
+import { roles } from "../utils/roles";
 
 const Navbar = (): ReactElement => {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { isAuthenticated, logout } = useAuth0()
-  const { user } = useUser()
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { isAuthenticated, logout } = useAuth0();
+  const { user } = useUser();
 
   const navItems = [
-    { path: "/mentor", label: "Home", roles: [...tier1Roles, ...tier2Roles] },
-    { path: "/mentee", label: "Home", roles: [...tier3Roles] },
+    {
+      path: "/mentor",
+      label: "Home",
+      roles: [roles.staff, roles.volunteer, roles.board],
+    },
+    { path: "/mentee", label: "Home", roles: [roles.participant] },
     {
       path: "/create-workshop",
       label: "Create Folder",
-      roles: [...tier1Roles],
+      roles: [roles.staff, roles.board],
     },
     {
       path: "/create-meeting",
       label: "Create Meeting",
-      roles: [...tier1Roles],
+      roles: [roles.staff, roles.volunteer],
     },
+    { path: "/create-event", label: "Create Event", roles: [roles.staff] },
     {
       path: "/invite",
       label: "Invite User",
-      roles: [...tier1Roles],
+      roles: [roles.staff],
     },
     {
       path: "/profile",
       label: "Profile",
-      roles: [...tier1Roles, ...tier2Roles, ...tier3Roles],
+      roles: [roles.staff, roles.volunteer, roles.participant, roles.board],
     },
-  ]
+  ];
 
   const filteredNavItems = navItems.filter((item) => {
-    if (!user) return false
+    if (!user) return false;
 
-    // Special case: only show the correct Home tab
+    // Handle "Home" tab logic separately
     if (item.label === "Home") {
       if (item.path === "/mentor") {
-        return user.role === "mentor" || tier1Roles.includes(user.role)
+        return [roles.staff, roles.volunteer, roles.board].includes(user.role);
       }
       if (item.path === "/mentee") {
-        return user.role === "mentee"
+        return user.role === roles.participant;
       }
-      return false
+      return false;
     }
 
-    // For all other tabs, use standard RBAC
-    return item.roles.includes(user.role)
-  })
+    return item.roles.includes(user.role);
+  });
 
   return (
     <div className="Navbar">
       <div className="Navbar-body">
-        <div
-          className="Navbar-body-logo"
-          onClick={() => navigate("/home")}
-        ></div>
+        <div className="Navbar-body-logo" onClick={() => navigate("/home")} />
 
         <div className="Navbar-left">
           {filteredNavItems.map((tab) => (
@@ -80,7 +81,6 @@ const Navbar = (): ReactElement => {
               >
                 Log In
               </div>
-
               <div
                 className="Button Button-color--teal-1000"
                 onClick={() => navigate("/signup")}
@@ -91,10 +91,13 @@ const Navbar = (): ReactElement => {
           ) : (
             <div
               className="Button Button-color--teal-1000"
-              onClick={() => {
-                const returnTo = window.location.origin + "/logout"
-                logout({ logoutParams: { returnTo } })
-              }}
+              onClick={() =>
+                logout({
+                  logoutParams: {
+                    returnTo: window.location.origin + "/logout",
+                  },
+                })
+              }
             >
               Log Out
             </div>
@@ -102,7 +105,7 @@ const Navbar = (): ReactElement => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default Navbar
+export default Navbar;

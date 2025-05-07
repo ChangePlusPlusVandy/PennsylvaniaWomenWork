@@ -42,7 +42,7 @@ export const generatePresignedUrl = async (req: Request, res: Response) => {
 };
 
 export const createWorkshop = async (req: Request, res: Response) => {
-  const { name, description, s3id, coverImageS3id } = req.body;
+  const { name, description, s3id, coverImageS3id, tags, role } = req.body;
 
   if (!name || !description) {
     return res.status(400).json({ message: "Missing required fields" });
@@ -54,6 +54,8 @@ export const createWorkshop = async (req: Request, res: Response) => {
       description,
       s3id,
       coverImageS3id,
+      tags: tags || [],
+      role,
     });
     const savedWorkshop = await newWorkshop.save();
 
@@ -107,7 +109,7 @@ export const getWorkshopsByUserId = async (req: Request, res: Response) => {
 export const updateWorkshop = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { name, description } = req.body;
+    const { name, description, tags, role } = req.body;
 
     if (!name || !description) {
       return res.status(400).json({ message: "Missing required fields" });
@@ -115,7 +117,7 @@ export const updateWorkshop = async (req: Request, res: Response) => {
 
     const updatedWorkshop = await Workshop.findByIdAndUpdate(
       id,
-      { name, description },
+      { name, description, tags, role },
       { new: true },
     );
 
@@ -156,9 +158,19 @@ export const deleteWorkshop = async (req: Request, res: Response) => {
 
 export const getAllWorkshops = async (req: Request, res: Response) => {
   try {
-    const workshops = await Workshop.find();
+    const { role } = req.query;
+    let query = {};
 
-    if (workshops.length === 0) {
+    // If role is specified, filter workshops by role
+    if (role) {
+      query = { role: role };
+    }
+
+    const workshops = await Workshop.find(query);
+
+    console.log(`Found ${workshops.length} workshops matching query:`, query);
+
+    if (!workshops || workshops.length === 0) {
       return res.status(404).json({ message: "No workshops found" });
     }
 
@@ -181,5 +193,21 @@ export const getWorkshopById = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error fetching workshop:", error);
     res.status(500).json({ message: "Error retrieving workshop", error });
+  }
+};
+
+export const getAllTags = async (req: Request, res: Response) => {
+  try {
+    // Use distinct to get unique tags directly from MongoDB
+    // not everything in workshops has tags as a field
+    const tags = await Workshop.distinct("tags");
+
+    // Filter out null/undefined and sort
+    const validTags = tags.filter((tag) => tag).sort();
+
+    res.status(200).json(validTags);
+  } catch (error) {
+    console.error("Error retrieving workshop tags:", error);
+    res.status(500).json({ message: "Error retrieving workshop tags", error });
   }
 };

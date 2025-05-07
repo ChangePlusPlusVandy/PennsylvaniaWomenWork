@@ -1,42 +1,28 @@
 import React from "react";
+
 export interface EventData {
-  userIds: string[];
+  _id: string;
+  name: string;
+  description: string;
   date: string;
   startTime: string;
   endTime: string;
-  name: string;
-  description: string;
-  formattedDate?: string;
+  expirationDate?: string;
   calendarLink?: string;
+  userIds?: string[];
+  formattedDate?: string;
 }
 
 interface EventProps {
   month: string;
   events: EventData[];
-  onEventClick: (event: EventData) => void;
+  onEventClick?: (event: EventData) => void;
 }
 
 const Event = ({ month, events, onEventClick }: EventProps) => {
   return (
-    <div key={month} style={{ marginBottom: "20px" }}>
-      <h3
-        style={{
-          fontSize: "18px",
-          fontWeight: "bold",
-          marginTop: "25px",
-          marginBottom: "10px",
-        }}
-      >
-        {month}
-      </h3>
-      <div
-        style={{
-          height: "1px",
-          width: "60%",
-          backgroundColor: "var(--pww-color-gray-300)",
-          marginBottom: "15px",
-        }}
-      />
+    <div className="Event">
+      <div className="Event-month">{month}</div>
 
       {events.map((event) => {
         const eventDate = new Date(event.date);
@@ -45,95 +31,35 @@ const Event = ({ month, events, onEventClick }: EventProps) => {
           weekday: "short",
         });
 
-        // Format time range
-        const formattedStart = new Date(event.startTime).toLocaleTimeString(
-          "en-US",
-          {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-          },
-        );
-        const formattedEnd = new Date(event.endTime).toLocaleTimeString(
-          "en-US",
-          {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-          },
-        );
-        const timeRange = `${formattedStart} – ${formattedEnd}`;
+        const isExpirationEvent = !!event.expirationDate;
+
+        let timeRange = "";
+        if (!isExpirationEvent) {
+          const formattedStart = new Date(event.startTime).toLocaleTimeString(
+            "en-US",
+            { hour: "2-digit", minute: "2-digit", hour12: true },
+          );
+          const formattedEnd = new Date(event.endTime).toLocaleTimeString(
+            "en-US",
+            { hour: "2-digit", minute: "2-digit", hour12: true },
+          );
+          timeRange = `${formattedStart} – ${formattedEnd}`;
+        }
 
         return (
           <div
-            key={event.name + event.date}
-            onClick={() => onEventClick(event)}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              padding: "12px 8px",
-              cursor: "pointer",
-              borderBottom: "1px solid var(--pww-color-gray-300)",
-            }}
+            key={event._id}
+            className="Event-item"
+            onClick={() => onEventClick && onEventClick(event)}
           >
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                minWidth: "60px",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: "24px",
-                  fontWeight: "bold",
-                  color: "var(--pww-color-dark-1000)",
-                }}
-              >
-                {dayOfMonth}
-              </div>
-              <div
-                style={{
-                  fontSize: "14px",
-                  color: "var(--pww-color-gray-600)",
-                  textTransform: "uppercase",
-                }}
-              >
-                {dayOfWeek}
-              </div>
+            <div className="Event-item-date">
+              <div className="day">{dayOfMonth}</div>
+              <div className="weekday">{dayOfWeek}</div>
             </div>
-
-            <div style={{ flexGrow: 1, paddingLeft: "20px" }}>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <span
-                  style={{
-                    fontSize: "16px",
-                    fontWeight: "bold",
-                    color: "var(--pww-color-gray-1000)",
-                  }}
-                >
-                  {event.name}
-                </span>
-                <span
-                  style={{
-                    fontSize: "14px",
-                    color: "var(--pww-color-gray-800)",
-                    marginTop: "2px",
-                  }}
-                >
-                  {event.description}
-                </span>
-                <span
-                  style={{
-                    fontSize: "12px",
-                    color: "var(--pww-color-gray-500)",
-                    marginTop: "4px",
-                  }}
-                >
-                  {timeRange}
-                </span>
+            <div className="Event-item-details">
+              <div className="title">{event.name}</div>
+              <div className="time">
+                {isExpirationEvent ? "Expires on this date" : timeRange}
               </div>
             </div>
           </div>
@@ -144,3 +70,69 @@ const Event = ({ month, events, onEventClick }: EventProps) => {
 };
 
 export default Event;
+
+export const parseEvents = (rawEvents: any[]): EventData[] => {
+  return rawEvents.map(
+    (event: any): EventData => ({
+      _id: event._id || `${event.name}-${event.date}`,
+      name: event.name,
+      startTime: event.startTime,
+      endTime: event.endTime,
+      description: event.description,
+      date: event.date,
+      expirationDate: event.expirationDate,
+      userIds: event.users || [],
+      calendarLink: event.calendarLink || "",
+    }),
+  );
+};
+
+export const groupEventsByMonth = (events: EventData[]) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return events
+    .filter((event) => new Date(event.date) >= today)
+    .sort(
+      (a, b) =>
+        new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+    )
+    .reduce(
+      (acc, event) => {
+        const eventDate = new Date(event.startTime);
+        const month = eventDate.toLocaleString("default", { month: "long" });
+
+        if (!acc[month]) acc[month] = [];
+
+        acc[month].push({
+          ...event,
+          formattedDate: eventDate.toDateString(),
+        });
+
+        return acc;
+      },
+      {} as { [key: string]: EventData[] },
+    );
+};
+
+export const formatEventSubheader = (event: EventData): string => {
+  const date = new Date(event.date);
+  const start = new Date(event.startTime);
+  const end = new Date(event.endTime);
+
+  if (event.expirationDate) {
+    const expiration = new Date(event.expirationDate);
+    return `Expires on ${expiration.toDateString()}`;
+  }
+
+  return `${date.toLocaleString("default", {
+    month: "long",
+  })} ${date.getDate()}, ${date.getFullYear()} ${start.toLocaleTimeString(
+    "en-US",
+    { hour: "2-digit", minute: "2-digit", hour12: true },
+  )} - ${end.toLocaleTimeString("en-US", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  })}`;
+};

@@ -65,3 +65,21 @@
   cursor: pointer;
   transition: all 0.2s ease;
 }
+
+.Filter-tag {
+  background: var(--pww-color-blue-100);
+  color: var(--pww-color-blue-1000);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 14px;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.Filter-tag--removable:hover {
+  background: var(--pww-color-blue-200);
+}
+
+.Hover--background-gray-100:hover {
+  background-color: var(--pww-color-gray-100);
+}

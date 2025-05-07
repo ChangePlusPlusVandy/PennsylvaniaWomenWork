@@ -4,57 +4,58 @@ import User from "../model/User";
 import {
   createAuthUser,
   createUserLink,
+  deleteAuthUser,
 } from "../config/auth0-user-management";
+import { GetUsers200ResponseOneOfInner } from "auth0";
+import { ObjectId } from "mongoose";
 
-export const createUser = async (req: Request, res: Response) => {
+interface AuthUserInfo {
+  first_name: string;
+  last_name: string;
+  role: string;
+  username: string;
+  workshops?: ObjectId[];
+}
+
+// user information from custom interface and auth0 response
+type dbUserInfo = AuthUserInfo &
+  Pick<GetUsers200ResponseOneOfInner, "email" | "user_id">;
+
+export const createUser = async (userInfo: dbUserInfo) => {
   const {
-    sub, // Auth0 user ID
+    user_id: sub,
+    email,
     first_name,
     last_name,
-    username,
-    email,
     role,
-    workshops,
-    menteeInfo,
-    meetingSchedule,
-    mentorData,
-    meetings,
-  } = req.body;
-
-  if (!sub || !first_name || !last_name || !username || !email || !role) {
-    return res.status(400).json({ message: "Missing required fields" });
-  }
+    username = email,
+    workshops = [],
+  } = userInfo;
 
   try {
     // Check if the user already exists
-    let existingUser = await User.findById(sub);
+    let existingUser = await User.findOne({ auth_id: sub });
+
     if (existingUser) {
-      return res
-        .status(409)
-        .json({ message: "User already exists", user: existingUser });
+      console.log("User already exists in the database", existingUser);
+      throw new Error("User already exists");
     }
 
     const newUser = new User({
-      _id: sub, // ✅ Store Auth0 sub as `_id`
+      auth_id: sub,
       first_name,
       last_name,
-      username,
       email,
       role,
       workshops: role === "mentor" ? workshops : undefined,
-      menteeInfo: role === "mentor" ? menteeInfo : undefined,
-      meetingSchedule: role === "mentee" ? meetingSchedule : undefined,
-      mentorData: role === "mentee" ? mentorData : undefined,
-      meetings: meetings || [],
     });
 
     const savedUser = await newUser.save();
-    res
-      .status(201)
-      .json({ message: "User created successfully", user: savedUser });
+
+    return savedUser;
   } catch (error) {
     console.error("Error creating user:", error);
-    res.status(500).json({ message: "Failed to create user", error });
+    throw new Error("Failed to create user");
   }
 };
 
@@ -68,20 +69,31 @@ export const sendEmail = async (req: Request, res: Response) => {
     const SEND_GRID_TEST_EMAIL = process.env.SEND_GRID_TEST_EMAIL || "";
     const PUBLIC_APP_URL = process.env.PUBLIC_APP_URL || "";
 
-    if (!SENDGRID_API_KEY || !SEND_GRID_TEST_EMAIL || !PUBLIC_APP_URL) {
+    const { email, firstName, lastName, role } = req.body;
+
+    if (
+      !SENDGRID_API_KEY ||
+      !SEND_GRID_TEST_EMAIL ||
+      !PUBLIC_APP_URL ||
+      !email ||
+      !firstName ||
+      !lastName ||
+      !role
+    ) {
       throw new Error(
-        "SendGrid API key, test email, public app url is missing",
+        "Missing required environment variables or user information",
       );
     }
-
-    const { email, name, role } = req.body;
 
     sgMail.setApiKey(SENDGRID_API_KEY);
 
     let templateId: string;
+    const cleanedEmail = email.toLowerCase().trim();
     const cleanedUserRole = role.toLowerCase().trim();
 
-    if (cleanedUserRole === "mentor") {
+    const adminRoles = ["board", "staff", "mentor"];
+
+    if (adminRoles.includes(cleanedUserRole)) {
       templateId = "d-1694192e437348e2a0517103acae3f00";
     } else if (cleanedUserRole === "mentee") {
       templateId = "d-7e26b82cf8624bafa4077b6ed73b52bf";
@@ -96,15 +108,29 @@ export const sendEmail = async (req: Request, res: Response) => {
     const Auth0ResetLink = await createUserLink(newUser.data.user_id);
 
     await sgMail.send({
-      to: email,
+      to: cleanedEmail,
       from: SEND_GRID_TEST_EMAIL,
       templateId: templateId,
       dynamicTemplateData: {
-        name: name,
+        name: `${firstName}`,
         password_reset_link: Auth0ResetLink,
         app_url: PUBLIC_APP_URL,
       },
     });
+
+    console.log("User created successfully in Auth0:", newUser);
+
+    const dbUser: dbUserInfo = {
+      user_id: newUser.data.user_id,
+      email: newUser.data.email,
+      username: newUser.data.email,
+      first_name: firstName,
+      last_name: lastName,
+      role: cleanedUserRole,
+    };
+
+    // create the user in the database
+    await createUser(dbUser);
 
     return res.status(200).json({ message: "Email successfully sent" });
   } catch (err: any) {
@@ -235,5 +261,89 @@ export const getCurrentUserById = async (req: Request, res: Response) => {
     res.json(user);
   } catch (err) {
     res.status(500).json({ error: "Server error" });
+  }
+};
+
+export const deleteUser = async (req: Request, res: Response) => {
+  const { menteeId: userId } = req.params;
+
+  console.log("Deleting user: ", userId);
+
+  if (!userId)
+    return res
+      .status(400)
+      .json({ message: "Invalid request. No user specified" });
+
+  try {
+    const deletedUser = await User.findOneAndDelete({ auth_id: userId });
+
+    if (!deletedUser) {
+      return res.status(404).json({ message: "User not found in db" });
+    }
+
+    const authDeletedUser = await deleteAuthUser(userId);
+
+    if (authDeletedUser.status !== 204) {
+      console.log("Auth user deletion failed. Response: ", authDeletedUser);
+      throw new Error("Failed to delete auth user");
+    }
+
+    console.log("Deleted auth: ", authDeletedUser);
+
+    res.status(200).json({ message: "User deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting user:", error);
+    res.status(500).json({ message: "Error deleting user", error });
+  }
+};
+
+export const getAllStaff = async (req: Request, res: Response) => {
+  try {
+    const staff = await User.find({ role: "staff" });
+
+    if (!staff || staff.length === 0) {
+      return res.status(404).json({ message: "No staff found" });
+    }
+
+    res.status(200).json(staff);
+  } catch (error) {
+    console.error("Error getting all staff:", error);
+    res.status(500).json({ message: "Error retrieving staff", error });
+  }
+};
+
+export const getAllBoard = async (req: Request, res: Response) => {
+  try {
+    const board = await User.find({ role: "board" });
+
+    if (!board || board.length === 0) {
+      return res.status(404).json({ message: "No board members found" });
+    }
+
+    res.status(200).json(board);
+  } catch (error) {
+    console.error("Error getting all board members:", error);
+    res.status(500).json({ message: "Error retrieving board", error });
+  }
+};
+
+export const getUserById = async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.userId; // ⬅️ make sure this matches
+
+    if (!userId) {
+      return res.status(400).json({ message: "User ID is required" });
+    }
+
+    const user = await User.findById(userId); // ⬅️ this expects a valid ObjectId
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    console.error("Error getting user by ID:", error);
+    res.status(500).json({ message: "Server error", error });
   }
 };

@@ -15,16 +15,19 @@ const s3 = new AWS.S3();
 const bucketName = process.env.S3_BUCKET_NAME;
 
 export const createResource = async (req: Request, res: Response) => {
-  const { name, description, s3id, workshopIDs, tags } = req.body;
+  const { name, description, s3id, workshopIDs, boardFileID, tags } = req.body;
+
+  if (!name || !description || !s3id) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
 
   if (
-    !name ||
-    !description ||
-    !s3id ||
-    !workshopIDs ||
-    !Array.isArray(workshopIDs)
+    (!workshopIDs || !Array.isArray(workshopIDs) || workshopIDs.length === 0) &&
+    !boardFileID
   ) {
-    return res.status(400).json({ message: "Missing required fields" });
+    return res
+      .status(400)
+      .json({ message: "Must provide either workshopIDs or boardFileID." });
   }
 
   try {
@@ -32,9 +35,11 @@ export const createResource = async (req: Request, res: Response) => {
       name,
       description,
       s3id,
-      workshopIDs,
+      workshopIDs: workshopIDs || [],
+      boardFileID: boardFileID || null,
       tags,
     });
+
     const savedResource = await newResource.save();
 
     res.status(201).json({
@@ -51,6 +56,20 @@ export const getResourcesByWorkshopId = async (req: Request, res: Response) => {
   try {
     const { workshopId } = req.params;
     const resources = await Resource.find({ workshopIDs: workshopId });
+    res.status(200).json(resources);
+  } catch (error) {
+    console.error("Error retrieving resources:", error);
+    res.status(500).json({ message: "Error retrieving resources", error });
+  }
+};
+
+export const getResourcesByBoardFileId = async (
+  req: Request,
+  res: Response,
+) => {
+  try {
+    const { boardFileID } = req.params;
+    const resources = await Resource.find({ boardFileID: boardFileID });
     res.status(200).json(resources);
   } catch (error) {
     console.error("Error retrieving resources:", error);
@@ -143,5 +162,32 @@ export const getAllTags = async (req: Request, res: Response) => {
   } catch (error) {
     console.error("Error fetching tags:", error);
     res.status(500).json({ message: "Error fetching tags", error });
+  }
+};
+
+export const deleteFile = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    console.log("Deleting resource with ID:", id);
+
+    const deletedResource = await Resource.findByIdAndDelete(id);
+
+    if (!deletedResource) {
+      return res.status(404).json({ message: "Resource not found" });
+    }
+
+    const params = {
+      Bucket: bucketName as string,
+      Key: deletedResource.s3id,
+    };
+
+    await s3.deleteObject(params).promise();
+
+    return res
+      .status(200)
+      .json({ message: "File and resource deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting file:", error);
+    return res.status(500).json({ message: "Failed to delete file", error });
   }
 };

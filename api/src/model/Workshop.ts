@@ -6,18 +6,25 @@ interface IWorkshop extends Document {
   s3id?: string; // Optional for now TODO: connect with S3 bucket
   coverImageS3id?: string;
   createdAt: Date;
+  tags: string[];
+  role: string;
 
   // updateContent(newContent: string): Promise<void>;
 }
 
 // workshop schema
-const WorkshopSchema: Schema<IWorkshop> = new Schema({
-  name: { type: String, required: true },
-  description: { type: String, required: true },
-  s3id: { type: String }, // S3 ID for associated files
-  coverImageS3id: { type: String },
-  createdAt: { type: Date, default: Date.now },
-});
+const WorkshopSchema: Schema<IWorkshop> = new Schema(
+  {
+    name: { type: String, required: true },
+    description: { type: String, required: true },
+    s3id: { type: String }, // S3 ID for associated files
+    coverImageS3id: { type: String },
+    createdAt: { type: Date, default: Date.now },
+    tags: [{ type: String }],
+    role: { type: String },
+  },
+  { timestamps: true },
+);
 
 // update text content of the workshop
 // TODO: is this needed ???

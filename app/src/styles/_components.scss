@@ -136,7 +136,6 @@
   }
 }
 
-
 /* src/components/ParticipantCard.css */
 .ParticipantCard {
   display: flex;
@@ -145,14 +144,17 @@
   background-color: #fff;
   border-radius: 8px;
   padding: 0.75rem;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  box-shadow: var(--pww-shadow-dark);
 }
 
 .ParticipantCard:hover {
   // add box shadow and scale on hover
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   transform: scale(1.02);
-  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  transition:
+    box-shadow 0.3s ease,
+    transform 0.3s ease;
 }
 
 .ParticipantCard-avatarWrapper {
@@ -187,4 +189,185 @@
 .ParticipantCard-email {
   font-size: 0.9rem;
   color: #777;
+}
+
+.FolderCard {
+  background-color: var(--pww-color-light-1000);
+  border-radius: var(--pww-border-radius-8);
+  box-shadow: var(--pww-shadow-dark);
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+
+  &:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transform: scale(1.02);
+    transition:
+      box-shadow 0.3s ease,
+      transform 0.3s ease;
+  }
+
+  &-image,
+  &-color {
+    position: relative; // ✨ allows absolute tags to anchor properly
+    height: 120px;
+    width: 100%;
+    border-top-left-radius: var(--pww-border-radius-8);
+    border-top-right-radius: var(--pww-border-radius-8);
+    flex-shrink: 0;
+  }
+
+  &-image {
+    background-size: cover;
+    background-position: center;
+  }
+
+  &-color {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--pww-color-green-1000);
+  }
+
+  &-name {
+    font-size: var(--pww-font-size-20);
+    font-weight: 800;
+    padding: 4px 5px;
+    border-bottom: 1px solid var(--pww-color-gray-200);
+    margin-bottom: 10px;
+    min-height: 48px;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.2em;
+    max-height: 2.4em;
+    word-break: break-word;
+  }
+
+  &-description {
+    color: var(--pww-color-gray-700);
+    font-size: var(--pww-font-size-16);
+    overflow-y: auto;
+    height: 60px;
+    padding: 0 5px;
+  }
+
+  &-tags {
+    position: absolute;
+    bottom: 8px;
+    left: 8px;
+    display: flex;
+    flex-wrap: nowrap; // prevent wrapping so it scrolls
+    overflow-x: auto; // allow horizontal scroll
+    max-width: calc(100% - 16px); // prevent overflow beyond card
+    border-radius: 4px;
+    gap: 4px;
+  }
+
+  &-tag {
+    background-color: var(--pww-color-light-600);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: var(--pww-color-dark-1000);
+    font-size: var(--pww-font-size-12);
+  }
+}
+
+.Event {
+  padding: 0 10px;
+
+  &-month {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+    color: var(--pww-color-blue-1000);
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--pww-color-gray-200);
+    padding-bottom: 6px;
+    width: fit-content;
+  }
+
+  &-item {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 10px;
+    padding: 14px 16px;
+    transition: all 0.25s ease;
+    // border: 1px solid var(--pww-color-gray-200);
+    margin-bottom: 14px;
+    box-shadow: var(--pww-shadow-dark);
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      border-color: var(--pww-color-blue-200);
+      background-color: var(--pww-color-light-200);
+    }
+
+    &-date {
+      min-width: 60px;
+      text-align: center;
+
+      .day {
+        font-size: 24px;
+        font-weight: 1000;
+        color: var(--pww-color-blue-1000);
+      }
+
+      .weekday {
+        font-size: 13px;
+        color: var(--pww-color-gray-600);
+        text-transform: uppercase;
+        font-weight: 500;
+      }
+    }
+
+    &-details {
+      flex-grow: 1;
+      padding-left: 18px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+
+      .title {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--pww-color-gray-1000);
+      }
+
+      .time {
+        font-size: 12px;
+        color: var(--pww-color-gray-700);
+        margin-top: 4px;
+        font-style: italic;
+      }
+    }
+  }
+}
+
+.TagDropdown {
+  position: relative;
+
+  &-menu {
+    position: absolute;
+    top: 40px;
+    left: 0;
+    z-index: 1000;
+    background-color: white;
+    border: 1px solid var(--pww-color-gray-300);
+    border-radius: 4px;
+    padding: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    min-width: 200px;
+    cursor: pointer;
+  }
+
+  &-item {
+    margin: 4px 0;
+    border-radius: var(--pww-border-radius-8);
+    cursor: pointer;
+  }
 }

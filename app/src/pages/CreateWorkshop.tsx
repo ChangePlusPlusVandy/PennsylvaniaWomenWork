@@ -10,6 +10,7 @@ import { url } from "inspector";
 import { toast } from "react-hot-toast";
 import CreatableSelect from "react-select/creatable";
 import makeAnimated from "react-select/animated";
+import AddFileModal from "../components/AddFileModal";
 
 const animatedComponents = makeAnimated();
 
@@ -18,6 +19,16 @@ interface FormValues {
   description: string;
   imageUpload: File | null;
   role: string;
+  tags: string[];
+}
+
+interface ResourcePayload {
+  name: string;
+  description: string;
+  s3id: string;
+  tags: string[];
+  boardFileId?: string;
+  workshopIDs?: string[];
 }
 
 const initialValues: FormValues = {
@@ -25,6 +36,7 @@ const initialValues: FormValues = {
   description: "",
   imageUpload: null,
   role: "",
+  tags: [],
 };
 
 const roles = [
@@ -38,13 +50,13 @@ const roles = [
 const validationSchema = Yup.object().shape({
   name: Yup.string().required("Name is required"),
   description: Yup.string().required("Description is required"),
-
+  role: Yup.string().required("Please select an audience"),
   imageUpload: Yup.mixed()
     .nullable()
     .test("fileSize", "File size is too large", (value) => {
       if (!value) return true;
 
-      const maxSize = 2 * 1024 * 1024; // 2 MB
+      const maxSize = 100 * 1024 * 1024; // 100 MB
       return (value as File).size <= maxSize;
     })
     .test(
@@ -78,22 +90,33 @@ const CreateWorkshop = () => {
       tags: string[];
     }[]
   >([]);
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [newTagInput, setNewTagInput] = useState("");
+  const [possibleTags, setPossibleTags] = useState<string[]>([]);
+  const [allPossibleTags, setAllPossibleTags] = useState<string[]>([]);
 
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchTags = async () => {
+    const fetchAllTags = async () => {
       try {
-        const { data } = await api.get("/api/resource/all-tags");
-        setAvailableTags(data || []);
-      } catch (err) {
-        console.error("Failed to load tags:", err);
+        const [workshopResponse, boardResponse] = await Promise.all([
+          api.get("/api/workshop/get-tags"),
+          api.get("/api/board/get-tags"),
+        ]);
+
+        const workshopTags = workshopResponse.data;
+        const boardTags = boardResponse.data;
+
+        // Combine and deduplicate tags
+        const allTags = Array.from(new Set([...workshopTags, ...boardTags]));
+        setAllPossibleTags(allTags);
+        setPossibleTags(allTags);
+      } catch (error) {
+        console.error("Error fetching tags:", error);
       }
     };
-    fetchTags();
+
+    fetchAllTags();
   }, []);
 
   const handleSubmit = async (
@@ -103,9 +126,15 @@ const CreateWorkshop = () => {
     setSubmitting(true);
     try {
       let coverImageS3id = null;
+      let createdId = null;
+
+      if (fileDetails.length === 0) {
+        toast.error("Please upload at least one file.");
+        setSubmitting(false);
+        return;
+      }
 
       if (values.imageUpload) {
-        // Get presigned URL for the cover image
         const coverImageResponse = await api.get(
           `/api/workshop/generate-presigned-url/${encodeURIComponent(values.imageUpload.name)}`,
         );
@@ -113,7 +142,6 @@ const CreateWorkshop = () => {
         const { url: coverImageUrl, objectKey: coverImageObjectKey } =
           coverImageResponse.data;
 
-        // Upload the cover image to S3
         await fetch(coverImageUrl, {
           method: "PUT",
           body: values.imageUpload,
@@ -123,69 +151,96 @@ const CreateWorkshop = () => {
         coverImageS3id = coverImageObjectKey;
       }
 
-      const payload = {
-        name: values.name,
-        description: values.description,
-        coverImageS3id,
-      };
-      // const { data: workshop } = await api.post("/api/create-workshop", payload);
-      const { data: workshop, status } = await api.post(
-        "/api/workshop/create-workshop",
-        payload,
-      );
+      // Create either board file or workshop based on role
+      if (values.role === "board") {
+        console.log("Board file payload:", {
+          name: values.name,
+          description: values.description,
+          coverImageS3id: coverImageS3id || `placeholder-${Date.now()}`, // Provide a placeholder if no image
+          tags: values.tags,
+          role: values.role,
+        });
+        try {
+          const { data, status } = await api.post(
+            "/api/board/create-board-file",
+            {
+              name: values.name,
+              description: values.description,
+              coverImageS3id: coverImageS3id || `placeholder-${Date.now()}`, // Provide a placeholder if no image
+              tags: values.tags,
+              role: values.role,
+            },
+          );
 
-      if (status === 201) {
-        toast.success("Workshop created successfully!");
+          if (status === 201) {
+            toast.success("Board file created successfully!");
+            createdId = data.boardFile._id;
+          }
+        } catch (error) {
+          console.error("Error creating board file:", error);
+          throw error;
+        }
+      } else {
+        const payload = {
+          name: values.name,
+          description: values.description,
+          coverImageS3id,
+          tags: values.tags,
+          role: values.role,
+        };
+
+        console.log("Workshop payload:", payload);
+
+        const { data: workshopData, status } = await api.post(
+          "/api/workshop/create-workshop",
+          payload,
+        );
+
+        if (status === 201) {
+          toast.success("Folder created successfully!");
+          createdId = workshopData.workshop._id;
+        }
       }
 
-      console.log("Workshop created:", workshop);
-      // Add associated files (with placeholder s3id for now)
-      if (fileDetails.length > 0) {
+      // Upload associated files
+      if (fileDetails.length > 0 && createdId) {
         for (const file of fileDetails) {
-          const uploadResponse = await fetch(file.url, {
+          await fetch(file.url, {
             method: "PUT",
             body: file.file,
             headers: { "Content-Type": file.file.type },
           });
-          console.log("Upload response:", uploadResponse);
-          console.log("workshop id", workshop._id);
-          await api.post("/api/resource/create-resource", {
+
+          const resourcePayload: ResourcePayload = {
             name: file.title,
             description: file.desc,
-            s3id: file.s3id, // Placeholder
-            workshopIDs: [workshop.workshop._id], // Link resource to this workshop
+            s3id: file.s3id,
             tags: file.tags,
-          });
+            ...(values.role === "board"
+              ? { boardFileID: createdId }
+              : { workshopIDs: [createdId] }),
+          };
+          try {
+            await api.post("/api/resource/create-resource", resourcePayload);
+          } catch (error) {
+            console.error("Error creating resource:", error);
+            toast.error("Failed to create resource. Please try again.");
+          }
         }
       }
-      //alert("Workshop created successfully!");
+
       resetForm();
-      setFileDetails([]); // Clear file details
+      setFileDetails([]);
       setSelectedFiles([]);
       setFileAdded(false);
-      // close modal
       setIsModal(false);
-      //navigate("/workshops");
     } catch (error) {
-      console.error("Error creating workshop:", error);
-      // alert("Failed to create workshop. Please try again.");
+      console.error("Error creating folder:", error);
       toast.error("Failed to create folder. Please try again.");
     } finally {
       setSubmitting(false);
     }
   };
-
-  const fileUploadInitialValues = {
-    title: "",
-    desc: "",
-    file: null, // This will not be used until s3 integration
-  };
-
-  const fileValidation = Yup.object().shape({
-    title: Yup.string().required("Title is required"),
-    desc: Yup.string().required("Description is required"),
-    file: Yup.mixed().required("Please select a file"),
-  });
 
   const handleFileSumbit = async (
     values: any,
@@ -235,133 +290,13 @@ const CreateWorkshop = () => {
   return (
     <>
       {isModal && (
-        <Modal
-          header="Add New Files"
-          subheader="Select Files to Upload"
-          action={() => setIsModal(false)}
-          body={
-            <Formik
-              initialValues={fileUploadInitialValues}
-              validationSchema={fileValidation}
-              onSubmit={handleFileSumbit}
-            >
-              {({ setFieldValue, errors, touched, isSubmitting }) => (
-                <Form>
-                  <div className="Form-group">
-                    <label htmlFor="tags">Tags (select or create new)</label>
-                    <CreatableSelect
-                      components={animatedComponents}
-                      isMulti
-                      options={availableTags.map((tag) => ({
-                        label: tag,
-                        value: tag,
-                      }))}
-                      value={selectedTags.map((tag) => ({
-                        label: tag,
-                        value: tag,
-                      }))}
-                      onChange={(selectedOptions: any) =>
-                        setSelectedTags(
-                          selectedOptions.map((opt: any) => opt.value),
-                        )
-                      }
-                      onCreateOption={(inputValue: any) => {
-                        const trimmed = inputValue.trim();
-                        if (!trimmed) return;
-                        if (!availableTags.includes(trimmed)) {
-                          setAvailableTags((prev) => [...prev, trimmed]);
-                        }
-                        if (!selectedTags.includes(trimmed)) {
-                          setSelectedTags((prev) => [...prev, trimmed]);
-                        }
-                      }}
-                      placeholder="Select or type to create a tag..."
-                      isClearable={false}
-                      isSearchable
-                      className="Margin-bottom--10"
-                      styles={{
-                        control: (base: any) => ({
-                          ...base,
-                          borderColor: "#ccc",
-                          boxShadow: "none",
-                        }),
-                      }}
-                      formatCreateLabel={(inputValue: any) =>
-                        `Create new tag: "${inputValue}"`
-                      }
-                      createOptionPosition="first"
-                    />
-                  </div>
-
-                  <div className="Form-group">
-                    <label htmlFor="title">Title</label>
-                    <Field
-                      className="Form-input-box"
-                      type="text"
-                      id="title"
-                      name="title"
-                    />
-                    {errors.title && touched.title && (
-                      <div className="Form-error">{errors.title}</div>
-                    )}
-                  </div>
-                  <div className="Form-group">
-                    <label htmlFor="desc">Description</label>
-                    <Field
-                      as="textarea"
-                      className="Form-input-box text-area"
-                      id="desc"
-                      name="desc"
-                      rows="4"
-                    />
-                    {errors.desc && touched.desc && (
-                      <div className="Form-error">{errors.desc}</div>
-                    )}
-                  </div>
-                  <div className="Form-group">
-                    <label htmlFor="file">Files</label>
-                    <input
-                      className="Form-input-box"
-                      type="file"
-                      id="file"
-                      name="file"
-                      onChange={(event) => {
-                        if (event.currentTarget.files) {
-                          const file = event.currentTarget.files[0];
-                          setFieldValue("file", file);
-                        }
-                      }}
-                    />
-                    {errors.file && touched.file && (
-                      <div className="Form-error">{errors.file}</div>
-                    )}
-                  </div>
-                  <button
-                    type="submit"
-                    className="Button Margin-top--10 Button-color--teal-1000 Width--100"
-                    disabled={
-                      Object.keys(errors).length > 0 ||
-                      !Object.keys(touched).length ||
-                      isSubmitting
-                    }
-                  >
-                    {isSubmitting ? (
-                      <AsyncSubmit loading={isLoading} />
-                    ) : (
-                      "Upload Files"
-                    )}
-                  </button>
-                  {errorMessage && (
-                    <div className="Form-error">{errorMessage}</div>
-                  )}
-
-                  {fileAdded && (
-                    <div className="Form-success">File added successfully!</div>
-                  )}
-                </Form>
-              )}
-            </Formik>
-          }
+        <AddFileModal
+          isOpen={isModal}
+          onClose={() => setIsModal(false)}
+          onSubmit={handleFileSumbit}
+          isLoading={isLoading}
+          errorMessage={errorMessage}
+          fileAdded={fileAdded}
         />
       )}
       <Navbar />
@@ -425,8 +360,54 @@ const CreateWorkshop = () => {
                     )}
                   </div>
                   <div className="Form-group">
+                    <label htmlFor="tags">Tags (select or create new)</label>
+                    <CreatableSelect
+                      components={animatedComponents}
+                      isMulti
+                      options={allPossibleTags.map((tag) => ({
+                        label: tag,
+                        value: tag,
+                      }))}
+                      value={values.tags.map((tag) => ({
+                        label: tag,
+                        value: tag,
+                      }))}
+                      onChange={(selectedOptions: any) =>
+                        setFieldValue(
+                          "tags",
+                          selectedOptions
+                            ? selectedOptions.map((opt: any) => opt.value)
+                            : [],
+                        )
+                      }
+                      onCreateOption={(inputValue: string) => {
+                        const trimmed = inputValue.trim();
+                        if (!trimmed) return;
+                        if (!allPossibleTags.includes(trimmed)) {
+                          setAllPossibleTags((prev) => [...prev, trimmed]);
+                        }
+                        setFieldValue("tags", [...values.tags, trimmed]);
+                      }}
+                      placeholder="Select or type to create tags..."
+                      isClearable
+                      isSearchable
+                      className="Margin-bottom--10"
+                      styles={{
+                        control: (base: any) => ({
+                          ...base,
+                          borderColor: "#ccc",
+                          boxShadow: "none",
+                        }),
+                      }}
+                      formatCreateLabel={(inputValue: string) =>
+                        `Create new tag: "${inputValue}"`
+                      }
+                      createOptionPosition="first"
+                    />
+                  </div>
+                  <div className="Form-group">
                     <label className="Form-label">
-                      Select a Group to Give Access to This File:
+                      Select group(s) to give bulk access (optional):
                     </label>
                     <div className="Role-tags">
                       {roles.map((role) => (
@@ -455,11 +436,21 @@ const CreateWorkshop = () => {
                   {fileDetails.length > 0 && (
                     <div>
                       <h4>Uploaded Files:</h4>
-                      <ul>
+                      <div className="Filter-tags">
                         {fileDetails.map((file, index) => (
-                          <li key={index}>{file.title}</li>
+                          <div
+                            key={index}
+                            className="Filter-tag"
+                            onClick={() =>
+                              setFileDetails((prev) =>
+                                prev.filter((_, i) => i !== index),
+                              )
+                            }
+                          >
+                            {file.title} ✕
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   )}
                   <div className="Flex-row Justify-content--center Margin-top--30">

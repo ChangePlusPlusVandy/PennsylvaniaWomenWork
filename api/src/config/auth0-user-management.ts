@@ -145,3 +145,34 @@ export const createAuthUser = async (
     }
   }
 };
+
+/**
+ * Deletes an Auth0 user
+ * @param userId user's auth0 id
+ * @param managementClient global instance of Auth0 ManagementClient
+ * @returns the deleted user object
+ */
+
+export const deleteAuthUser = async (
+  userId: string,
+  managementClient: ManagementClient = Auth0ManagementClient,
+): Promise<{ [key: string]: any }> => {
+  try {
+    const deletedUser = await managementClient.users.delete({ id: userId });
+
+    if (deletedUser.status !== 204) {
+      throw new Error("Failed to delete auth user");
+    }
+
+    return deletedUser;
+  } catch (error: any) {
+    console.error("Error occurred while deleting user:", error.message);
+    if (error.statusCode === 401) {
+      console.info("Token expired or unauthorized. Refreshing token...");
+      await getManagementClient(true);
+      return await deleteAuthUser(userId);
+    } else {
+      throw new Error(`Failed to delete user: ${error.message}`);
+    }
+  }
+};

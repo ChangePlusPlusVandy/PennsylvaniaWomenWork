@@ -1,25 +1,3 @@
-.Event {
-  padding: 0 10px;
-
-  &-month {
-    font-weight: bold;
-    text-transform: uppercase;
-    border-bottom: 1px solid var(--pww-color-gray-200);
-    width: 60%;
-    padding: 10px 0;
-    color: var(--pww-color-blue-1000);
-    margin-bottom: 20px;
-  }
-
-  &-item {
-    display: flex;
-    flex-direction: row;
-    cursor: pointer;
-    align-items: center;
-    margin-bottom: 20px;
-  }
-}
-
 .Workshop-card {
   background-color: var(--pww-color-light-1000);
   border-radius: var(--pww-border-radius-8);

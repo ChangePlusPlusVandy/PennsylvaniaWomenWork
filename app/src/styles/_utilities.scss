@@ -337,6 +337,7 @@
   height: fit-content;
   padding: 5px 10px;
   text-align: center;
+  align-items: center;
   // white-space: nowrap;
 
   &--borderless {
@@ -393,7 +394,7 @@
   border-width: 1px;
   padding: 2px;
   font-weight: 700;
-  font-size: var(--pww-font-size-12);
+  font-size: var(--pww-font-size-14);
   width: fit-content;
   height: fit-content;
   text-align: center;

@@ -48,7 +48,7 @@ const SampleMenteeInvite = () => {
         firstName: values.firstName,
         lastName: values.lastName,
         email: values.email,
-        role: "mentee",
+        role: values.role,
       });
 
       if (response.status === 200) {

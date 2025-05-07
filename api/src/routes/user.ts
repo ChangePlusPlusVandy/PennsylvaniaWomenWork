@@ -8,6 +8,10 @@ import {
   getCurrentUser,
   updateUser,
   getCurrentUserById,
+  deleteUser,
+  getAllStaff,
+  getAllBoard,
+  getUserById,
 } from "../controllers/userController";
 
 const router = express.Router();
@@ -27,5 +31,13 @@ router.get("/current-user", getCurrentUser);
 router.get("/current-userid/:auth_id", getCurrentUserById);
 
 router.put("/:userId", updateUser);
+
+// delete user from auth0 and mongo by id
+router.delete("/:userId", deleteUser);
+
+router.get("/all-staff", getAllStaff);
+router.get("/all-board", getAllBoard);
+
+router.get("/:userId", getUserById);
 
 export default router;
