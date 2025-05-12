@@ -289,20 +289,20 @@ const StaffDashboard = () => {
                     "Folders",
                     ...(user?.role === "staff"
                       ? [
-                          "My Participants",
+                          "My Mentees",
                           "Volunteers",
                           "Staff Members",
                           "Board Members",
                         ]
                       : []),
-                    ...(user?.role === "mentor" ? ["My Participants"] : []),
+                    ...(user?.role === "mentor" ? ["My Mentees"] : []),
                   ].map((tab) => (
                     <div
                       key={tab}
                       onClick={() => handleTabClick(tab)}
                       className={`tab ${activeTab === tab ? "active" : ""}`}
                     >
-                      {tab === "My Participants" && user?.role === "staff"
+                      {tab === "My Mentees" && user?.role === "staff"
                         ? "Participants"
                         : tab}
                     </div>
@@ -311,7 +311,7 @@ const StaffDashboard = () => {
               </div>
               <div className="Block-subtitle" />
 
-              {activeTab === "My Participants" && (
+              {activeTab === "My Mentees" && mentees.length > 0 && (
                 <PeopleGrid users={mentees} />
               )}
 

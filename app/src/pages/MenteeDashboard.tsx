@@ -181,12 +181,12 @@ const MenteeDashboard = () => {
               )}
 
               {/* Add Schedule Meeting button for mentees */}
-              <div
+              {/* <div
                 className="Button Button-color--blue-1000 Margin-top--10"
                 onClick={() => navigate("/create-meeting")}
               >
                 Schedule Meeting
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
