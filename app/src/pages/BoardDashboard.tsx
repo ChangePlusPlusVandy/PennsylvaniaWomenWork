@@ -28,9 +28,7 @@ const BoardDashboard = () => {
   const userId = user?._id;
   const [possibleTags, setPossibleTags] = useState<string[]>([]);
 
-  const formattedSubheader = selectedEvent
-    ? formatEventSubheader(selectedEvent)
-    : "";
+  const formattedSubheader = selectedEvent ? formatEventSubheader(selectedEvent) : "";
 
   const eventsByMonth = groupEventsByMonth(events);
 
@@ -61,7 +59,7 @@ const BoardDashboard = () => {
             description: file.description,
             coverImageS3id: file.coverImageS3id,
             tags: file.tags || [],
-          })),
+          }))
         );
       } catch (error) {
         console.error("Error fetching board files:", error);
