@@ -65,7 +65,8 @@ const MenteeInformation = () => {
   const [mentees, setMentees] = useState<MenteeInfo[]>([])
   const [events, setEvents] = useState<any[]>([])
   const [selectedEvent, setSelectedEvent] = useState<EventData | null>(null)
-
+  const [isBoardAssignModal, setIsBoardAssignModal] = useState(false)
+  const [boardFiles, setBoardFiles] = useState<any[]>([])
   const roleMap: Record<string, string> = {
     board: "Board Member",
     mentee: "Participant",
@@ -195,12 +196,37 @@ const MenteeInformation = () => {
     fetchMentors()
   }, [userId])
 
+  useEffect(() => {
+    if (roleType === "Board Member" && user?.role === "staff") {
+      const fetchAllBoardFiles = async () => {
+        try {
+          // Use the correct endpoint for getBoardFiles
+          const res = await api.get("/api/board/get-files")
+          setBoardFiles(res.data)
+        } catch (err) {
+          console.error("Error fetching all board files:", err)
+        }
+      }
+      fetchAllBoardFiles()
+    }
+  }, [roleType, user])
+  const assignedBoardFiles = boardFiles.filter(
+    (file) => Array.isArray(file.tags) && file.tags.includes(currUser?._id)
+  )
+  const unassignedBoardFiles = boardFiles.filter(
+    (file) => !Array.isArray(file.tags) || !file.tags.includes(currUser?._id)
+  )
+  
+
   const initialValues = {
     courseName: "",
   }
 
   const validationSchema = yup.object({
     courseName: yup.string().required("Course selection is required"),
+  })
+  const boardValidationSchema = yup.object({
+    courseName: yup.string().required("File selection is required"),
   })
 
   const handleSubmit = async (
@@ -289,6 +315,45 @@ const MenteeInformation = () => {
       setSubmitting(false)
     }
   }
+  
+  const handleBoardAssignSubmit = async (
+    values: typeof initialValues,
+    { setSubmitting }: any
+  ) => {
+    try {
+      if (!userId) {
+        toast.error("No board member selected")
+        setSubmitting(false)
+        return
+      }
+  
+      const payload = {
+        workshopId: values.courseName,
+      }
+  
+      // You may need to create a new API endpoint for board members, or reuse the mentee one if it works
+      const response = await api.put(
+        `/api/board/${userId}/assign-file`,
+        payload
+      )
+  
+      if (response.status === 200) {
+        toast.success("File assigned successfully!")
+        // Optionally refresh user data
+        const updatedUser = await api.get(`/api/user/${userId}`)
+        setCurrUser(updatedUser.data)
+        setIsBoardAssignModal(false)
+      } else {
+        throw new Error("Failed to assign file")
+      }
+    } catch (error) {
+      console.error("Error assigning file:", error)
+      toast.error("Failed to assign file")
+    } finally {
+      setSubmitting(false)
+    }
+  }
+  
 
   const handleEventClick = (event: EventData) => {
     setSelectedEvent(event)
@@ -479,7 +544,7 @@ const MenteeInformation = () => {
                   <div className="Block Margin-bottom--20">
                     <div className="Block-header">{roleType} Files</div>
                     <div className="Block-subtitle">
-                      Folders assigned to {currUser?.first_name}
+                      Files assigned to {currUser?.first_name}
                     </div>
                     {assignedWorkshops.length > 0 ? (
                       <div className="Flex-col">
@@ -490,7 +555,7 @@ const MenteeInformation = () => {
                         ))}
                       </div>
                     ) : (
-                      <p>No folders assigned.</p>
+                      <p>No files assigned.</p>
                     )}
                     {user?.role === "staff" && (
                       <button
@@ -521,7 +586,31 @@ const MenteeInformation = () => {
                     )}
                   </div>
                 )}
-
+                {roleType === "Board Member" && user?.role === "staff" && (
+                  <div className="Block Margin-bottom--20">
+                    <div className="Block-header">Board Member Files</div>
+                    <div className="Block-subtitle">
+                      Files assigned to {currUser?.first_name}
+                    </div>
+                    {assignedBoardFiles.length > 0 ? (
+                      <div className="Flex-col">
+                        {assignedBoardFiles.map((file) => (
+                          <div key={file.name} className="Profile-field">
+                            {file.name}
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p>No files assigned.</p>
+                    )}
+                    <button
+                      className="Button Button-color--blue-1000 Width--100"
+                      onClick={() => setIsBoardAssignModal(true)}
+                    >
+                      Assign New File
+                    </button>
+                  </div>
+                )}
                 <div className="Block">
                   <div className="Block-header">Delete {roleType}</div>
                   <div className="Block-subtitle">
@@ -659,6 +748,53 @@ const MenteeInformation = () => {
           }
         />
       )}
+      {isBoardAssignModal && (
+        <Modal
+          header="Assign New File"
+          subheader={`Assign a new file to this board member`}
+          action={() => setIsBoardAssignModal(false)}
+          body={
+            <Formik
+              initialValues={initialValues}
+              validationSchema={boardValidationSchema}
+              onSubmit={handleBoardAssignSubmit}
+            >
+              {({ errors, touched, isSubmitting }) => (
+                <Form>
+                  <div className="Form-group">
+                    <label htmlFor="courseName">Select File</label>
+                    <Field
+                      as="select"
+                      className="Form-input-box"
+                      id="courseName"
+                      name="courseName"
+                    >
+                      <option value="">Select a file...</option>
+                      {unassignedBoardFiles.map((file) => (
+                        <option key={file.name} value={file.name}>
+                          {file.name}
+                        </option>
+                      ))}
+                    </Field>
+                    {errors.courseName && touched.courseName && (
+                      <div className="Form-error">{errors.courseName}</div>
+                    )}
+                  </div>
+      
+                  <button
+                    type="submit"
+                    className="Button Button-color--teal-1000 Width--100"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Assigning..." : "Assign File"}
+                  </button>
+                </Form>
+              )}
+            </Formik>
+          }
+          
+        />
+      )}  
     </>
   )
 }

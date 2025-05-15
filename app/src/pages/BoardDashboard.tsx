@@ -120,8 +120,10 @@ const BoardDashboard = () => {
         <div className="row g-3">
           <div className="col-lg-8">
             <div className="Block">
-              <div className="Block-header">All Files</div>
-              <div className="Block-subtitle">Select a file to access materials.</div>
+              <div className="Block-header">All Folders</div>
+              <div className="Block-subtitle">
+                Select a file to access materials.
+              </div>
               <FolderUI
                 folders={folders}
                 allTags={possibleTags}
